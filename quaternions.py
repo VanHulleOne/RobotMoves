@@ -6,6 +6,15 @@ Created on Mon Aug 15 13:32:57 2016
 """
 import numpy as np
 
+rotMat = 0
+W = 0
+X = 1
+Y = 2
+Z = 3
+
+CW = -1
+CCW = 1
+
 class Quat:
     def __init__(self, w, x=None, y=None, z=None):
         self.PRECISION = 7
@@ -17,64 +26,72 @@ class Quat:
             self.y = y
             self.z = z
 
+    def _key(self):
+        return self.w, self.x, self.y, self.z
+
     def __iter__(self):
-        return (round(i, self.PRECISION) for i in (self.w, self.x, self.y, self.z))
+        return (i for i in self._key())
             
     def rotate(self, axis, deg):
         axis = 'wxyz'.index(axis)
         fRad = deg/360.0*np.pi
         quat = [0]*4
-        quat[w] = np.cos(fRad)
+        quat[W] = np.cos(fRad)
         quat[axis] = np.sin(fRad)
         return Quat(quat)*self
     
     def __mul__(self, other):
         quat = [0]*4
-        quat[w] = self.w*other.w - self.x*other.x - self.y*other.y - self.z*other.z
-        quat[x] = self.w*other.x + self.x*other.w + self.y*other.z - self.z*other.y
-        quat[y] = self.w*other.y - self.x*other.z + self.y*other.w + self.z*other.x
-        quat[z] = self.w*other.z + self.x*other.y - self.y*other.x + self.z*other.w
+        quat[W] = self.w*other.w - self.x*other.x - self.y*other.y - self.z*other.z
+        quat[X] = self.w*other.x + self.x*other.w + self.y*other.z - self.z*other.y
+        quat[Y] = self.w*other.y - self.x*other.z + self.y*other.w + self.z*other.x
+        quat[Z] = self.w*other.z + self.x*other.y - self.y*other.x + self.z*other.w
         return Quat(quat)
     
+    def __str__(self):
+        return '[' + ', '.join('{:0.7g}'.format(i) for i in self) + ']'
+    
     def __repr__(self):
-        return 'Quat(' + ', '.join(str(i) for i in self) + ')'
+        return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
 
-def circle(radius, centerX, centerY, centerZ=0, numPoints=20):
+def circle(*, centerX, centerY, centerZ=0, radius, numPoints=20, dir_, startAngle):
+    startRad = startAngle/360.0*np.pi*2
     for i in range(numPoints):
-        radians = (2*np.pi/numPoints)*i + np.pi/2.0
+        radians = (2*np.pi/numPoints)*i*dir_*-1 + startRad
         yield centerX + radius*np.cos(radians), centerY + -radius*np.sin(radians), centerZ
         
 def linearMove(endPoint, quat, config, speed):
-    tool = 'tNozTest'
-    work = 'wobjPlatform'
+    tool = 'tNozzle'
+    workObj = 'wobjPlatform'
 
-    return ('\t\tMoveL [[' + ', '.join(['{:0.3f}'.format(i) for i in endPoint]) + '], [' + 
-            ', '.join(['{:0.7g}'.format(i) for i in quat]) + '], ' + str(list(config)) +', [' +
-            ', '.join(['9E+09']*6) + ']], v{:.0f}, z0, '.format(speed) +
-            tool + ', \\Wobj := ' + work + ';\n')         
+    return ('\t\tMoveL [[' +
+            ', '.join(['{:0.3f}'.format(i) for i in endPoint]) + '], ' + # X, Y, Z
+            str(quat) + ', ' + # Quaternion
+            str(config) + # Configuration
+            ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
+            'v{:.0f}, z0, '.format(speed) + # Speed
+            tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
 
-def circle_quat(numPoints=20):
-    quat = Quat(0.707107, -0.707107, 0, 0)
-    for i in range(numPoints):
+def circle_quat(numPoints=20, quat=None):
+    if quat is None:
+        quat = Quat(0.707107, -0.707107, 0, 0)
+    for i in range((numPoints+1)*2):
 #        yield quat
         yield quat.rotate('z', -360.0/numPoints*i)
         
-def move_robot_circle(radius, centerX, centerY, centerZ=0, numPoints=20):
+def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=20):
     config = [-1,-1,-2,0]
-    for point, quat in zip(circle(radius, centerX, centerY, centerZ, numPoints),
+    for point, quat in zip(circle(centerX=centerX, centerY=centerY, centerZ=centerZ,
+                                  radius=radius, numPoints=numPoints),
                            circle_quat(numPoints)):
         yield linearMove(point, quat, config, 30)
 
 with open('circle.txt', 'w') as outfile:    
-    for move in move_robot_circle(75, -175, -26.8+75, 0):
+    for move in move_robot_circle(centerX=95, centerY=-10, centerZ=90, radius=75):
         print(move, end='')
         outfile.write(move)
     
-rotMat = 0
-w = 0
-x = 1
-y = 2
-z = 3
+
     
 def mat2quat(m):
     q1 = np.sqrt(m[0,0] + m[1,1] + m[2,2] + 1)/2
@@ -86,15 +103,15 @@ def mat2quat(m):
     return q, r
     
 def quat2mat(q):
-    m1 = np.array([[q[w], q[z], -q[y], q[x]],
-                   [-q[z], q[w], q[x], q[y]],
-                   [q[y], -q[x], q[w], q[z]],
-                   [-q[x], -q[y], -q[z], q[w]]])
+    m1 = np.array([[q[W], q[Z], -q[Y], q[X]],
+                   [-q[Z], q[W], q[X], q[Y]],
+                   [q[Y], -q[X], q[W], q[Z]],
+                   [-q[X], -q[Y], -q[Z], q[W]]])
 
-    m2 = np.array([[q[w], q[z], -q[y], -q[x]],
-                   [-q[z], q[w], q[x], -q[y]],
-                   [q[y], -q[x], q[w], -q[z]],
-                   [q[x], q[y], q[z], q[w]]])
+    m2 = np.array([[q[W], q[Z], -q[Y], -q[X]],
+                   [-q[Z], q[W], q[X], -q[Y]],
+                   [q[Y], -q[X], q[W], -q[Z]],
+                   [q[X], q[Y], q[Z], q[W]]])
 
     return np.dot(m1, m2)[:3,:3]
     
@@ -127,7 +144,7 @@ def rotation_quat(axis, deg):
     axis = 'wxyz'.index(axis)
     fRad = deg/360.0*np.pi
     quat = [0]*4
-    quat[w] = np.cos(fRad)
+    quat[W] = np.cos(fRad)
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
