@@ -34,7 +34,7 @@ class Quat:
             
     def rotate(self, axis, deg):
         axis = 'wxyz'.index(axis)
-        fRad = deg/360.0*np.pi
+        fRad = -deg/360.0*np.pi
         quat = [0]*4
         quat[W] = np.cos(fRad)
         quat[axis] = np.sin(fRad)
