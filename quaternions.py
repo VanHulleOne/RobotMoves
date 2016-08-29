@@ -33,14 +33,22 @@ class Quat:
         return (i for i in self._key())
             
     def rotate(self, axis, deg):
+        """
+        Rotation quaternion creation from here:
+        http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
+        """
         axis = 'wxyz'.index(axis)
-        fRad = -deg/360.0*np.pi
+        rad = -deg/360.0*np.pi
         quat = [0]*4
-        quat[W] = np.cos(fRad)
-        quat[axis] = np.sin(fRad)
+        quat[W] = np.cos(rad)
+        quat[axis] = np.sin(rad)
         return Quat(quat)*self
     
     def __mul__(self, other):
+        """
+        Multiplication from here:
+        http://www.cprogramming.com/tutorial/3d/quaternions.html
+        """
         quat = [0]*4
         quat[W] = self.w*other.w - self.x*other.x - self.y*other.y - self.z*other.z
         quat[X] = self.w*other.x + self.x*other.w + self.y*other.z - self.z*other.y
@@ -55,6 +63,7 @@ class Quat:
         return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
 
 def circle(*, centerX, centerY, centerZ=0, radius, numPoints=20, dir_, startAngle):
+    
     startRad = startAngle/360.0*np.pi*2
     for i in range(numPoints):
         radians = (2*np.pi/numPoints)*i*dir_*-1 + startRad
@@ -86,10 +95,10 @@ def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=20):
                            circle_quat(numPoints)):
         yield linearMove(point, quat, config, 30)
 
-with open('circle.txt', 'w') as outfile:    
-    for move in move_robot_circle(centerX=95, centerY=-10, centerZ=90, radius=75):
-        print(move, end='')
-        outfile.write(move)
+#with open('circle.txt', 'w') as outfile:    
+#    for move in move_robot_circle(centerX=95, centerY=-10, centerZ=90, radius=75):
+#        print(move, end='')
+#        outfile.write(move)
     
 
     
