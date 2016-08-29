@@ -5,6 +5,7 @@ Created on Mon Aug 15 13:32:57 2016
 @author: lvanhulle
 """
 import numpy as np
+from itertools import namedtuple
 
 rotMat = 0
 W = 0
@@ -81,19 +82,36 @@ def linearMove(endPoint, quat, config, speed):
             'v{:.0f}, z0, '.format(speed) + # Speed
             tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
 
-def circle_quat(numPoints=20, quat=None):
-    if quat is None:
-        quat = Quat(0.707107, -0.707107, 0, 0)
+def circle_quat(*, numPoints=20, dir_, startAngle):
+    quat = Quat(0.707107, -0.707107, 0, 0).rotate('z', startAngle)
     for i in range((numPoints+1)*2):
-#        yield quat
-        yield quat.rotate('z', -360.0/numPoints*i)
+        yield quat
         
-def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=20):
-    config = [-1,-1,-2,0]
-    for point, quat in zip(circle(centerX=centerX, centerY=centerY, centerZ=centerZ,
-                                  radius=radius, numPoints=numPoints),
-                           circle_quat(numPoints)):
-        yield linearMove(point, quat, config, 30)
+def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=30, dir_=CW, startAngle=-90):
+    Config = namedtuple('Config', 'axis1 axis4 axis6 axisX')
+    _4up = Config(-1, 0, 2, 1)
+    _2up = Config(-1, 0, 0, 1)
+    _1up1st = Config(-1, 2, 3, 1)
+    _1up2nd = Config(-1, -2, 0, 1)
+    _3up1st = Config(-1, -2, 2, 1)
+    _3up2nd = Config(-1, 2, 0, 1)
+    configs = [_1up1st, _4up, _3up1st, _3up2nd, _2up, _1up2nd]
+    locs = list(zip(circle(centerX=centerX,
+                                  centerY=centerY,
+                                  centerZ=centerZ,
+                                  radius=radius,
+                                  numPoints=numPoints,
+                                  dir_=dir_,
+                                  startAngle=startAngle),
+                           circle_quat(numPoints=numPoints,
+                                       dir_=dir_,
+                                       startAngle=startAngle)))
+
+    # TODO dvide the numpoint in half to perfrom each 180 turn, the divide that half
+    # by 3 to break it into the three configurations.
+
+    for x, (point, quat) in enumerate(locs[:len(locs)/2]):
+        yield linearMove(point, quat, configs[:3], 30)
 
 #with open('circle.txt', 'w') as outfile:    
 #    for move in move_robot_circle(centerX=95, centerY=-10, centerZ=90, radius=75):
