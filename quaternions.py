@@ -5,7 +5,6 @@ Created on Mon Aug 15 13:32:57 2016
 @author: lvanhulle
 """
 import numpy as np
-from collections import namedtuple
 
 rotMat = 0
 W = 0
@@ -15,6 +14,9 @@ Z = 3
 
 CW = -1
 CCW = 1
+
+MOVEL = 'MoveL'
+MOVEJ = 'MoveJ'
 
 class Quat:
     def __init__(self, w, x=None, y=None, z=None):
@@ -67,30 +69,24 @@ class Quat:
     
     def __repr__(self):
         return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
-        
-def moveL(endPoint, quat, config, speed):
+
+def move(type_, point, quat, config, speed):
     tool = 'tNozzle'
     workObj = 'wobjPlatform'
 
-    return ('\t\tMoveL [[' +
-            ', '.join(['{:0.3f}'.format(i) for i in endPoint]) + '], ' + # X, Y, Z
+    return ('\t\t' + type_ + ' [[' +
+            ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
             str(quat) + ', ' + # Quaternion
             str(list(config)) + # Configuration
             ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
             'v{:.0f}, z0, '.format(speed) + # Speed
             tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
-
-def moveJ(point, quat, config, speed):
-    tool = 'tNozzle'
-    workObj = 'wobjPlatform'
+        
+def moveL(point, quat, config, speed):
+    return move(MOVEL, point, quat, config, speed)
     
-    return ('\t\tMoveJ [[' +
-        ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
-        str(quat) + ', ' + # Quaternion
-        str(list(config)) + # Configuration
-        ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
-        'v{:.0f}, z0, '.format(speed) + # Speed
-        tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
+def moveJ(point, quat, config, speed):
+    return move(MOVEJ, point, quat, config, speed)
 
 def circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):    
     startRad = startAngle/360.0*np.pi*2
@@ -148,42 +144,8 @@ def move_circle(*, centerX, centerY, centerZ, radius, numPoints, dir_, startAngl
             yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
         yield moveL(point, quat, config, 30)
         
-        
-def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):
-    Config = namedtuple('Config', 'axis1 axis4 axis6 axisX')
-    _4up = Config(-1, 0, 2, 0)
-    _2up = Config(-1, 0, 0, 1)
-    _1up1st = Config(-1, 2, 3, 0)
-    _1up2nd = Config(-1, -2, 0, 1)
-    _3up1st = Config(-1, -2, 2, 0)
-    _3up2nd = Config(-1, 2, 0, 1)
-    configs = [[_1up1st, _4up, _3up1st], [_3up2nd, _2up, _1up2nd]]
-    locs = list(zip(circle(centerX=centerX,
-                                  centerY=centerY,
-                                  centerZ=centerZ,
-                                  radius=radius,
-                                  numPoints=numPoints,
-                                  dir_=dir_,
-                                  startAngle=startAngle),
-                           circle_quat(numPoints=numPoints,
-                                       dir_=dir_,
-                                       startAngle=startAngle)))
-
-    for x, (point, quat) in enumerate(locs[:len(locs)//2]):
-        yield moveL(point, quat, configs[1][x//(len(locs)//(2*3))], 30)
-        
-    yield '\nDo something for reposition\n'
-    
-    for x, (point, quat) in enumerate(locs[len(locs)//2:]):
-        yield moveL(point, quat, configs[0][x//(len(locs)//(2*3))], 30)
-
-#with open('circle.txt', 'w') as outfile:    
-for move in move_robot_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
-    print(move, end='')
-    
-print('\n\nSecond Batch\n\n')
-for move in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
-    print(move, end='')
+for line in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
+    print(line, end='')
 #    outfile.write(move)
     
 
