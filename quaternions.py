@@ -68,7 +68,7 @@ class Quat:
     def __repr__(self):
         return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
         
-def linearMove(endPoint, quat, config, speed):
+def moveL(endPoint, quat, config, speed):
     tool = 'tNozzle'
     workObj = 'wobjPlatform'
 
@@ -79,6 +79,18 @@ def linearMove(endPoint, quat, config, speed):
             ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
             'v{:.0f}, z0, '.format(speed) + # Speed
             tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
+
+def moveJ(point, quat, config, speed):
+    tool = 'tNozzle'
+    workObj = 'wobjPlatform'
+    
+    return ('\t\tMoveJ [[' +
+        ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
+        str(quat) + ', ' + # Quaternion
+        str(list(config)) + # Configuration
+        ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
+        'v{:.0f}, z0, '.format(speed) + # Speed
+        tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
 
 def circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):    
     startRad = startAngle/360.0*np.pi*2
@@ -92,6 +104,50 @@ def circle_quat(*, numPoints, dir_, startAngle):
     step = np.pi*2/numPoints
     for i in range(numPoints):
         yield quat.rotate_rad('z', startRad+i*step*dir_)
+
+def reorient():
+    yield '\t\tjRepo := CJointT();\n'
+    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 - 60;\n'
+    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
+    yield '\t\tjRepo.robax.rax_4 := jRepo.robax.rax_4 + 180;\n'
+    yield '\t\tjRepo.robax.rax_5 := jRepo.robax.rax_5 + 120;\n'
+    yield '\t\tjRepo.robax.rax_6 := jRepo.robax.rax_6 + 180;\n'
+        
+    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
+    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 + 60;\n'
+    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
+        
+def move_circle(*, centerX, centerY, centerZ, radius, numPoints, dir_, startAngle):
+    START_RAD = startAngle/360.0*2*np.pi
+    STEP_RAD = np.pi*2/numPoints
+    REF_QUAT = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
+    A4_CONFIGS = [2, 1, 0, -1, -2]
+    first = True
+    for i in range(numPoints//2):
+        currAngle = START_RAD + i*STEP_RAD*dir_
+        point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        quat = REF_QUAT.rotate_rad('z', currAngle)
+        config = [-1, A4_CONFIGS[int(i/((numPoints/2)/len(A4_CONFIGS)))], 0, 1]
+        if first:
+            first = False
+            yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
+        yield moveL(point, quat, config, 30)
+
+    point[2] += 75
+    yield moveL(point, quat, config, 30)         
+     
+    yield from reorient()
+    first = True
+    for i in range(numPoints//2, numPoints):
+        currAngle = START_RAD + i*STEP_RAD*dir_
+        point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        quat = REF_QUAT.rotate_rad('z', currAngle)
+        config = [-1, A4_CONFIGS[int((i-numPoints//2)/((numPoints/2)/len(A4_CONFIGS)))], 3, 0]
+        if first:
+            first = False
+            yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
+        yield moveL(point, quat, config, 30)
+        
         
 def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):
     Config = namedtuple('Config', 'axis1 axis4 axis6 axisX')
@@ -114,15 +170,19 @@ def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, s
                                        startAngle=startAngle)))
 
     for x, (point, quat) in enumerate(locs[:len(locs)//2]):
-        yield linearMove(point, quat, configs[1][x//(len(locs)//(2*3))], 30)
+        yield moveL(point, quat, configs[1][x//(len(locs)//(2*3))], 30)
         
     yield '\nDo something for reposition\n'
     
     for x, (point, quat) in enumerate(locs[len(locs)//2:]):
-        yield linearMove(point, quat, configs[0][x//(len(locs)//(2*3))], 30)
+        yield moveL(point, quat, configs[0][x//(len(locs)//(2*3))], 30)
 
 #with open('circle.txt', 'w') as outfile:    
-for move in move_robot_circle(centerX=64, centerY=47, centerZ=60, radius=75, numPoints=24, dir_=CCW, startAngle=0):
+for move in move_robot_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
+    print(move, end='')
+    
+print('\n\nSecond Batch\n\n')
+for move in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
     print(move, end='')
 #    outfile.write(move)
     
