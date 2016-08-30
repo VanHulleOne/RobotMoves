@@ -5,7 +5,7 @@ Created on Mon Aug 15 13:32:57 2016
 @author: lvanhulle
 """
 import numpy as np
-from itertools import namedtuple
+from collections import namedtuple
 
 rotMat = 0
 W = 0
@@ -33,17 +33,22 @@ class Quat:
     def __iter__(self):
         return (i for i in self._key())
             
-    def rotate(self, axis, deg):
+    def rotate_deg(self, axis, deg):
+        rad = deg/360.0*2*np.pi
+        return self.rotate_rad(axis, rad)
+
+    def rotate_rad(self, axis, rad):
         """
         Rotation quaternion creation from here:
         http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/
         """
+#        rad *= -1
         axis = 'wxyz'.index(axis)
-        rad = -deg/360.0*np.pi
         quat = [0]*4
-        quat[W] = np.cos(rad)
-        quat[axis] = np.sin(rad)
+        quat[W] = np.cos(rad/2)
+        quat[axis] = np.sin(rad/2)
         return Quat(quat)*self
+    
     
     def __mul__(self, other):
         """
@@ -58,17 +63,10 @@ class Quat:
         return Quat(quat)
     
     def __str__(self):
-        return '[' + ', '.join('{:0.7g}'.format(i) for i in self) + ']'
+        return '[' + ', '.join('{:0.7g}'.format(round(i,self.PRECISION)) for i in self) + ']'
     
     def __repr__(self):
         return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
-
-def circle(*, centerX, centerY, centerZ=0, radius, numPoints=20, dir_, startAngle):
-    
-    startRad = startAngle/360.0*np.pi*2
-    for i in range(numPoints):
-        radians = (2*np.pi/numPoints)*i*dir_*-1 + startRad
-        yield centerX + radius*np.cos(radians), centerY + -radius*np.sin(radians), centerZ
         
 def linearMove(endPoint, quat, config, speed):
     tool = 'tNozzle'
@@ -77,25 +75,33 @@ def linearMove(endPoint, quat, config, speed):
     return ('\t\tMoveL [[' +
             ', '.join(['{:0.3f}'.format(i) for i in endPoint]) + '], ' + # X, Y, Z
             str(quat) + ', ' + # Quaternion
-            str(config) + # Configuration
+            str(list(config)) + # Configuration
             ', [' + ', '.join(['9E+09']*6) + ']], ' + # List of 9E+09 which are robot default for ignore
             'v{:.0f}, z0, '.format(speed) + # Speed
             tool + ', \\Wobj := ' + workObj + ';\n') # Tool and work object 
 
-def circle_quat(*, numPoints=20, dir_, startAngle):
-    quat = Quat(0.707107, -0.707107, 0, 0).rotate('z', startAngle)
-    for i in range((numPoints+1)*2):
-        yield quat
+def circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):    
+    startRad = startAngle/360.0*np.pi*2
+    for i in range(numPoints):
+        radians = (2*np.pi/numPoints)*i*dir_ + startRad
+        yield centerX + radius*np.cos(radians), centerY + radius*np.sin(radians), centerZ
+
+def circle_quat(*, numPoints, dir_, startAngle):
+    startRad = startAngle/360.0*2*np.pi
+    quat = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
+    step = np.pi*2/numPoints
+    for i in range(numPoints):
+        yield quat.rotate_rad('z', startRad+i*step*dir_)
         
-def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=30, dir_=CW, startAngle=-90):
+def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):
     Config = namedtuple('Config', 'axis1 axis4 axis6 axisX')
-    _4up = Config(-1, 0, 2, 1)
+    _4up = Config(-1, 0, 2, 0)
     _2up = Config(-1, 0, 0, 1)
-    _1up1st = Config(-1, 2, 3, 1)
+    _1up1st = Config(-1, 2, 3, 0)
     _1up2nd = Config(-1, -2, 0, 1)
-    _3up1st = Config(-1, -2, 2, 1)
+    _3up1st = Config(-1, -2, 2, 0)
     _3up2nd = Config(-1, 2, 0, 1)
-    configs = [_1up1st, _4up, _3up1st, _3up2nd, _2up, _1up2nd]
+    configs = [[_1up1st, _4up, _3up1st], [_3up2nd, _2up, _1up2nd]]
     locs = list(zip(circle(centerX=centerX,
                                   centerY=centerY,
                                   centerZ=centerZ,
@@ -107,16 +113,18 @@ def move_robot_circle(*, centerX, centerY, centerZ=0, radius, numPoints=30, dir_
                                        dir_=dir_,
                                        startAngle=startAngle)))
 
-    # TODO dvide the numpoint in half to perfrom each 180 turn, the divide that half
-    # by 3 to break it into the three configurations.
-
-    for x, (point, quat) in enumerate(locs[:len(locs)/2]):
-        yield linearMove(point, quat, configs[:3], 30)
+    for x, (point, quat) in enumerate(locs[:len(locs)//2]):
+        yield linearMove(point, quat, configs[1][x//(len(locs)//(2*3))], 30)
+        
+    yield '\nDo something for reposition\n'
+    
+    for x, (point, quat) in enumerate(locs[len(locs)//2:]):
+        yield linearMove(point, quat, configs[0][x//(len(locs)//(2*3))], 30)
 
 #with open('circle.txt', 'w') as outfile:    
-#    for move in move_robot_circle(centerX=95, centerY=-10, centerZ=90, radius=75):
-#        print(move, end='')
-#        outfile.write(move)
+for move in move_robot_circle(centerX=64, centerY=47, centerZ=60, radius=75, numPoints=24, dir_=CCW, startAngle=0):
+    print(move, end='')
+#    outfile.write(move)
     
 
     
