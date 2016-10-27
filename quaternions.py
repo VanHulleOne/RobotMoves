@@ -142,7 +142,11 @@ def move_circle(*, centerX, centerY, centerZ, radius, numPoints, dir_, startAngl
         if first:
             first = False
             yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
+        
         yield moveL(point, quat, config, 30)
+        point[2] = centerZ if i%2 else centerZ + 30
+        yield moveL(point, quat, config, 30)
+        
         
 for line in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
     print(line, end='')
