@@ -113,7 +113,7 @@ def reorient():
     yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 + 60;\n'
     yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
         
-def move_circle(*, centerX, centerY, centerZ, radius, numPoints, dir_, startAngle):
+def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, startAngle):
     START_RAD = startAngle/360.0*2*np.pi
     STEP_RAD = np.pi*2/numPoints
     REF_QUAT = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
@@ -148,7 +148,7 @@ def move_circle(*, centerX, centerY, centerZ, radius, numPoints, dir_, startAngl
         yield moveL(point, quat, config, 30)
         
         
-for line in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, numPoints=24, dir_=CCW, startAngle=0):
+for line in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, height=30, numPoints=24, dir_=CCW, startAngle=0):
     print(line, end='')
 #    outfile.write(move)
     
