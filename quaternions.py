@@ -121,34 +121,51 @@ def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, s
     first = True
     for i in range(numPoints//2):
         currAngle = START_RAD + i*STEP_RAD*dir_
-        point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        top_point = [base_point[0], base_point[1], base_point[2]+height]
         quat = REF_QUAT.rotate_rad('z', currAngle)
         config = [-1, A4_CONFIGS[int(i/((numPoints/2)/len(A4_CONFIGS)))], 0, 1]
         if first:
             first = False
-            yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
-        yield moveL(point, quat, config, 30)
+            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
+        if i%2:
+            """
+            If the line number is even then first position is at full height
+            second position is at base.
+            """
+            yield moveL(top_point, quat, config, 30)
+            yield moveL(base_point, quat, config, 30)
+        else:            
+            yield moveL(base_point, quat, config, 30)
+            yield moveL(top_point, quat, config, 30)
 
-    point[2] += 75
-    yield moveL(point, quat, config, 30)         
+    top_point[2] += 75
+    yield moveL(top_point, quat, config, 30)         
      
     yield from reorient()
     first = True
     for i in range(numPoints//2, numPoints):
         currAngle = START_RAD + i*STEP_RAD*dir_
-        point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
+        top_point = [base_point[0], base_point[1], base_point[2]+height]
         quat = REF_QUAT.rotate_rad('z', currAngle)
         config = [-1, A4_CONFIGS[int((i-numPoints//2)/((numPoints/2)/len(A4_CONFIGS)))], 3, 0]
         if first:
             first = False
-            yield moveJ([point[0], point[1], point[2]+75], quat, config, 300)
+            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
+        if i%2:
+            """
+            If the line number is even then first position is at full height
+            second position is at base.
+            """
+            yield moveL(top_point, quat, config, 30)
+            yield moveL(base_point, quat, config, 30)
+        else:            
+            yield moveL(base_point, quat, config, 30)
+            yield moveL(top_point, quat, config, 30)
         
-        yield moveL(point, quat, config, 30)
-        point[2] = centerZ if i%2 else centerZ + 30
-        yield moveL(point, quat, config, 30)
         
-        
-for line in move_circle(centerX=100, centerY=50, centerZ=10, radius=37, height=30, numPoints=24, dir_=CCW, startAngle=0):
+for line in move_circle(centerX=249.47, centerY=108.27, centerZ=46.53+100, radius=5.075, height=30, numPoints=60, dir_=CCW, startAngle=0):
     print(line, end='')
 #    outfile.write(move)
     
