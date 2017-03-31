@@ -165,7 +165,7 @@ def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, s
             yield moveL(top_point, quat, config, 30)
         
         
-for line in move_circle(centerX=249.47, centerY=108.27, centerZ=46.53+100, radius=5.075, height=30, numPoints=60, dir_=CCW, startAngle=0):
+for line in move_circle(centerX=249.47, centerY=108.27, centerZ=65+50, radius=10.185, height=25, numPoints=128, dir_=CCW, startAngle=0):
     print(line, end='')
 #    outfile.write(move)
     
