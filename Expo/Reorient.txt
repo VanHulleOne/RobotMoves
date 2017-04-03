@@ -1,0 +1,10 @@
+		! Reorient
+		MoveL Offs(pZeroStarMute, 6.414, -2.071, 50), v100, z0, tNozzle, \Wobj := wobj1Star;
+		MoveL Offs(pZeroCircleMute, -13.381, -10.927, 50), v100, z0, tNozzle, \Wobj := wobj2Circle;
+		MoveL Offs(pZeroSquareMute, -17.25, -17.25, 50), v100, z0, tNozzle, \Wobj := wobj3Square;
+		
+		!Back
+		MoveL Offs(pZeroCircleMute, -13.381, -10.927, 50), v100, z0, tNozzle, \Wobj := wobj2Circle;
+		MoveL Offs(pZeroStarMute, 6.414, -2.071, 50), v100, z0, tNozzle, \Wobj := wobj1Star;
+			
+		
