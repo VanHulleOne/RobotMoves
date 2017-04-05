@@ -6,7 +6,7 @@ MODULE MainModule
 
     PERS robtarget rob1;
     
-    PERS intnum layerNum:=80;
+    PERS intnum layerNum:=124;
     
     VAR bool firstLayer := TRUE;
 
@@ -2389,7 +2389,7 @@ MODULE MainModule
         IF firstLayer THEN
             firstLayer := FALSE;
         ELSE
-            WaitTime 0.3;
+            WaitTime 0.2;
         ENDIF
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0.0, 17.691, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2549,7 +2549,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
-		WaitTime 0.3;
+		WaitTime 0.2;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2702,7 +2702,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
-		WaitTime 0.3;
+		WaitTime 0.2;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2861,7 +2861,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;        
-		WaitTime 0.3;
+		WaitTime 0.2;
 		MoveL Offs(pZeroStarMute, 0.0, 17.691, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, -16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
