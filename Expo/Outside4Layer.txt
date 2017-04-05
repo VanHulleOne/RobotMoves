@@ -2,10 +2,13 @@ MODULE MainModule
     PERS robtarget pZeroStarMute;
     PERS robtarget pZeroCircleMute;
     PERS robtarget pZeroSquareMute;
+	PERS robtarget pZeroMute;
 
     PERS robtarget rob1;
     
-    PERS intnum layerNum:=4;
+    PERS intnum layerNum:=80;
+    
+    VAR bool firstLayer := TRUE;
 
     
 	PROC main()
@@ -13,6 +16,7 @@ MODULE MainModule
         pZeroStarMute := Offs(pZeroStar, 0, 0, 0.2);
         pZeroCircleMute := Offs(pZeroCircle, 0, 0, 0.2);
         pZeroSquareMute := Offs(pZeroSquare, 0, 0, 0.2);
+		pZeroMute := Offs(pZero, 0, 0, 65);
         
         Heat;
 		SetDO DO1_Auto_Mode, 1;
@@ -31,7 +35,11 @@ MODULE MainModule
             MoveL RelTool(rob1,0,0,0\Rz:=-120), v20 \T:= 2, z0, tool1, \Wobj := wobj0;
             
             Square1;            
-            MoveL Offs(pZeroSquareMute, 0, 0, 100), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+            MoveL Offs(pZeroSquareMute,0,75,100), v100, z10, tNozzle, \Wobj := wobj3Square;
+            MoveJ [[1.73,-309.00,565.73],[0.0259052,-0.000738148,-0.00194185,0.999662],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v100, z10, tool1;
+            
+            Triang1;
+            MoveL Offs(pZeroMute, 0, 0, 100), v100, fine \Inpos:= inpos50, tNozzle, \WObj:= wobjPlatform;
             
             Dance;
             MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
@@ -49,7 +57,11 @@ MODULE MainModule
             MoveL RelTool(rob1,0,0,0\Rz:=-120), v20 \T:= 2, z0, tool1, \Wobj := wobj0;
             
             Square2;            
-            MoveL Offs(pZeroSquareMute, 0, 0, 100), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+            MoveL Offs(pZeroSquareMute,0,75,100), v100, z10, tNozzle, \Wobj := wobj3Square;
+            MoveJ [[1.73,-309.00,565.73],[0.0259052,-0.000738148,-0.00194185,0.999662],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v100, z10, tool1;
+            
+            Triang2;
+            MoveL Offs(pZeroMute, 0, 0, 100), v100, fine \Inpos:= inpos50, tNozzle, \WObj:= wobjPlatform;
             
             Dance;
             MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
@@ -67,7 +79,11 @@ MODULE MainModule
             MoveL RelTool(rob1,0,0,0\Rz:=-120), v20 \T:= 2, z0, tool1, \Wobj := wobj0;
             
             Square3;            
-            MoveL Offs(pZeroSquareMute, 0, 0, 100), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+            MoveL Offs(pZeroSquareMute,0,75,100), v100, z10, tNozzle, \Wobj := wobj3Square;
+            MoveJ [[1.73,-309.00,565.73],[0.0259052,-0.000738148,-0.00194185,0.999662],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v100, z10, tool1;
+            
+            Triang3;
+            MoveL Offs(pZeroMute, 0, 0, 100), v100, fine \Inpos:= inpos50, tNozzle, \WObj:= wobjPlatform;
             
             Dance;
             MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
@@ -85,7 +101,11 @@ MODULE MainModule
             MoveL RelTool(rob1,0,0,0\Rz:=-120), v20 \T:= 2, z0, tool1, \Wobj := wobj0;
             
             Square4;            
-            MoveL Offs(pZeroSquareMute, 0, 0, 100), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+            MoveL Offs(pZeroSquareMute,0,75,100), v100, z10, tNozzle, \Wobj := wobj3Square;
+            MoveJ [[1.73,-309.00,565.73],[0.0259052,-0.000738148,-0.00194185,0.999662],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v100, z10, tool1;
+            
+            Triang4;
+            MoveL Offs(pZeroMute, 0, 0, 100), v100, fine \Inpos:= inpos50, tNozzle, \WObj:= wobjPlatform;
             
             Dance;
             MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
@@ -94,10 +114,7 @@ MODULE MainModule
 	
 	ENDPROC
 	
-	PROC Dance()
-        MoveL [[-22.49,-464.08,469.91],[0.012527,-0.0120047,-0.705598,0.7084],[-2,0,-1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
-        MoveJ [[-17.92,-326.05,577.97],[0.0563153,0.00294746,-0.0125574,0.99833],[-2,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
-        
+	PROC Dance()        
         MoveL [[197.61,-326.05,507.47],[0.0563161,0.00294604,-0.0125557,0.99833],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
         MoveL [[197.61,-606.76,507.46],[0.320039,0.00618314,-0.0113187,0.947317],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
         WaitTime 4;
@@ -109,10 +126,160 @@ MODULE MainModule
         MoveL [[-234.19,-202.97,507.46],[0.505947,0.00835666,-0.00982308,0.862468],[-2,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
         WaitTime 4;
         MoveJ [[23.23,-309.03,507.46],[0.0646149,0.0118804,-0.00502334,0.997827],[-1,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
-        MoveJ [[-17.92,-326.06,577.96],[0.056308,0.00295517,-0.0125974,0.99833],[-2,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
-        MoveJ [[-21.85,-389.58,453.14],[0.612787,0.611514,0.353243,-0.354629],[-2,1,-1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v80, z10, tool1;
+        MoveJ [[-17.92,-326.06,577.96],[0.056308,0.00295517,-0.0125974,0.99833],[-2,0,-1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z10, tool1;
+        MoveJ [[-21.85,-389.58,453.14],[0.612787,0.611514,0.353243,-0.354629],[-2,1,-1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v200, z10, tool1;
 	    MoveL Offs(pZeroStarMute, 0, 0, 100), v100, z5, tNozzle\WObj:=wobj1Star;
     ENDPROC
+	
+	PROC Triang1()
+		! Layer 1 Triang
+		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		
+		MoveL Offs(pZeroMute, 0.0, 22.0, 5.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 0;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.433, 19.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -0.433, 19.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -1.299, 17.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 1.299, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 2.165, 16.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -2.165, 16.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -3.031, 14.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 3.031, 14.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 3.897, 13.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -3.897, 13.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -4.763, 11.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 4.763, 11.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 5.629, 10.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -5.629, 10.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -6.495, 8.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 6.495, 8.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 7.361, 7.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -7.361, 7.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -8.227, 5.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 8.227, 5.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 9.093, 4.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -9.093, 4.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -9.959, 2.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 9.959, 2.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 10.825, 1.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -10.825, 1.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -11.692, -0.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 11.692, -0.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 12.558, -1.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -12.558, -1.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -13.424, -3.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 13.424, -3.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 14.29, -4.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -14.29, -4.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -15.156, -6.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 15.156, -6.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 16.022, -7.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -16.022, -7.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -16.888, -9.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 16.888, -9.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 1;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 16.888, -9.25, 5.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		
+		
+	ENDPROC
 	
 	PROC Square1()
 		! Layer 1 Square
@@ -124,6 +291,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroSquareMute, 17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, 17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, -17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
@@ -275,11 +443,472 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
 		MoveL Offs(pZeroSquareMute, 16.75, 16.5, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
+		SetDO DO8_Triple_Retract, 1;
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
-		SetDO DO5_Program_Feed, 0;
+		SetDO DO5_Program_Feed, 0;        
+        WaitTime 0.15;
 		MoveL Offs(pZeroSquareMute, 16.75, 16.5, 5.2), v100, z0, tNozzle, \Wobj := wobj3Square;
         MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+		WaitRob \InPos;
+		SetDO DO8_Triple_Retract, 0;
+	ENDPROC
+	
+	PROC Triang2()
+		! Layer 2 Triang
+		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		
+		MoveL Offs(pZeroMute, -19.053, -11.0, 5.4), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 0;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
+		MoveL Offs(pZeroMute, 19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -16.455, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 0.433, 19.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 1.299, 17.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -14.723, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -12.991, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 2.165, 16.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 3.031, 14.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -11.259, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -9.526, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 3.897, 13.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 4.763, 11.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -7.794, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -6.062, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 5.629, 10.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 6.495, 8.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -4.33, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -2.598, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 7.361, 7.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 8.227, 5.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -0.866, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.866, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 9.093, 4.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 9.959, 2.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 2.598, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 4.33, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 10.825, 1.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 11.691, -0.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 6.062, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 7.794, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 12.557, -1.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 13.423, -3.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 9.526, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 11.258, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 14.29, -4.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 15.156, -6.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 12.99, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 14.722, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 16.022, -7.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 16.888, -9.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 16.454, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		SetDO DO8_Triple_Retract, 1;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 1;
+		SetDO DO5_Program_Feed, 0;        
+        WaitTime 0.15;
+		MoveL Offs(pZeroMute, 16.454, -10.0, 5.4), v100, z0, tNozzle, \Wobj := wobjPlatform;
+        MoveL Offs(pZeroMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO8_Triple_Retract, 0;
+	ENDPROC
+	
+	PROC Triang3()
+		! Layer 3 Triang
+		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		
+		MoveL Offs(pZeroMute, -19.053, -11.0, 5.6), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 0;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
+		MoveL Offs(pZeroMute, 19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -16.454, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -16.888, -9.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -16.022, -7.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -14.722, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -12.99, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -15.156, -6.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -14.29, -4.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -11.258, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -9.526, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -13.423, -3.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -12.557, -1.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -7.794, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -6.062, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -11.691, -0.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -10.825, 1.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -4.33, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -2.598, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -9.959, 2.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -9.093, 4.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -0.866, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.866, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -8.227, 5.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -7.361, 7.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 2.598, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 4.33, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -6.495, 8.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -5.629, 10.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 6.062, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 7.794, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -4.763, 11.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -3.897, 13.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 9.526, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 11.259, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -3.031, 14.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -2.165, 16.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 12.991, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 14.723, -10.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -1.299, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -0.433, 19.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 16.455, -10.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		SetDO DO8_Triple_Retract, 1;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 1;
+		SetDO DO5_Program_Feed, 0;        
+        WaitTime 0.15;
+		MoveL Offs(pZeroMute, 16.455, -10.0, 5.6), v100, z0, tNozzle, \Wobj := wobjPlatform;
+        MoveL Offs(pZeroMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO8_Triple_Retract, 0;
+	ENDPROC
+	
+	PROC Triang4()
+		! Layer 4 Triang
+		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		
+		MoveL Offs(pZeroMute, 0.0, 22.0, 5.8), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 0;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
+		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 18.187, -10.5, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		MoveL Offs(pZeroMute, 0.0, 21.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 0.433, 19.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -0.433, 19.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -1.299, 17.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 1.299, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 2.165, 16.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -2.165, 16.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -3.031, 14.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 3.031, 14.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 3.897, 13.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -3.897, 13.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -4.763, 11.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 4.763, 11.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 5.629, 10.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -5.629, 10.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -6.495, 8.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 6.495, 8.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 7.361, 7.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -7.361, 7.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -8.227, 5.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 8.227, 5.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 9.093, 4.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -9.093, 4.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -9.959, 2.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 9.959, 2.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 10.825, 1.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -10.825, 1.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -11.692, -0.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 11.692, -0.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 12.558, -1.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -12.558, -1.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -13.424, -3.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 13.424, -3.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 14.29, -4.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -14.29, -4.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -15.156, -6.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 15.156, -6.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, 16.022, -7.75, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, -16.022, -7.75, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 0;
+		MoveL Offs(pZeroMute, -16.888, -9.25, 0.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO5_Program_Feed, 1;
+		MoveL Offs(pZeroMute, 16.888, -9.25, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
+		SetDO DO6_Between_Layer_Retract, 1;
+		SetDO DO5_Program_Feed, 0;        
+        WaitTime 0.15;
+		MoveL Offs(pZeroMute, 16.888, -9.25, 5.8), v100, z0, tNozzle, \Wobj := wobjPlatform;
+        MoveL Offs(pZeroMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobjPlatform;
+		WaitRob \InPos;
 	ENDPROC
 		
 	PROC Square2()
@@ -291,6 +920,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroSquareMute, -17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, 17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, 17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
@@ -444,9 +1074,11 @@ MODULE MainModule
 		MoveL Offs(pZeroSquareMute, 16.5, -16.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
-		SetDO DO5_Program_Feed, 0;
-		MoveL Offs(pZeroSquareMute, 16.5, -16.75, 5.4), v100, z0, tNozzle, \Wobj := wobj3Square;
-		MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+		SetDO DO5_Program_Feed, 0;        
+        WaitTime 0.15;
+		MoveL Offs(pZeroSquareMute, 16.75, 16.5, 5.2), v100, z0, tNozzle, \Wobj := wobj3Square;
+        MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+		WaitRob \InPos;
 	ENDPROC
 	
 	PROC Square3()
@@ -458,6 +1090,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroSquareMute, -17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, 17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, 17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
@@ -612,8 +1245,10 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
-		MoveL Offs(pZeroSquareMute, 16.75, -16.5, 5.6), v100, z0, tNozzle, \Wobj := wobj3Square;
-		MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+        WaitTime 0.15;
+		MoveL Offs(pZeroSquareMute, 16.75, 16.5, 5.2), v100, z0, tNozzle, \Wobj := wobj3Square;
+        MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+		WaitRob \InPos;
 	ENDPROC
 	
 	PROC Square4()
@@ -625,6 +1260,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroSquareMute, 17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, -17.75, 17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
 		MoveL Offs(pZeroSquareMute, -17.75, -17.75, 0.2), v30, z0, tNozzle, \Wobj := wobj3Square;
@@ -779,8 +1415,10 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
-		MoveL Offs(pZeroSquareMute, -16.5, 16.75, 5.8), v100, z0, tNozzle, \Wobj := wobj3Square;
-		MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+        WaitTime 0.15;
+		MoveL Offs(pZeroSquareMute, 16.75, 16.5, 5.2), v100, z0, tNozzle, \Wobj := wobj3Square;
+        MoveL Offs(pZeroSquareMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj3Square;
+		WaitRob \InPos;
 	ENDPROC
 		
 	PROC Circle1()
@@ -792,6 +1430,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroCircleMute, 10.083, 14.607, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 7.609, 16.036, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 4.938, 17.048, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
@@ -1016,6 +1655,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroCircleMute, -9.767, -13.541, 5.2), v100, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj2Circle;
 	ENDPROC
@@ -1029,6 +1669,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroCircleMute, 10.083, -14.607, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 12.295, -12.801, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 14.189, -10.663, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
@@ -1253,6 +1894,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroCircleMute, 13.536, -9.826, 5.4), v100, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj2Circle;
 	ENDPROC
@@ -1266,6 +1908,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroCircleMute, 7.609, -16.036, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 10.083, -14.607, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 12.295, -12.801, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
@@ -1490,6 +2133,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroCircleMute, -13.539, -9.769, 5.6), v100, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj2Circle;
 	ENDPROC
@@ -1503,6 +2147,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        WaitTime 0.1;
 		MoveL Offs(pZeroCircleMute, -13.285, 11.77, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, -15.001, 9.486, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, -16.329, 6.957, 0.2), v30, z0, tNozzle, \Wobj := wobj2Circle;
@@ -1727,6 +2372,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroCircleMute, 9.878, -13.484, 5.8), v100, z0, tNozzle, \Wobj := wobj2Circle;
 		MoveL Offs(pZeroCircleMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj2Circle;
 	ENDPROC
@@ -1740,6 +2386,11 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+        IF firstLayer THEN
+            firstLayer := FALSE;
+        ELSE
+            WaitTime 0.3;
+        ENDIF
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0.0, 17.691, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, -16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -1884,6 +2535,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroStarMute, 1.206, 15.579, 5.2), v100, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
 	ENDPROC
@@ -1897,6 +2549,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+		WaitTime 0.3;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2035,6 +2688,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroStarMute, 15.348, 5.305, 5.4), v100, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
 	ENDPROC
@@ -2048,6 +2702,7 @@ MODULE MainModule
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
 		SetDO DO5_Program_Feed, 1;
+		WaitTime 0.3;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2192,6 +2847,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroStarMute, 1.206, 15.579, 5.6), v100, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
 	ENDPROC
@@ -2204,7 +2860,8 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 0;
 		WaitRob \InPos;
-		SetDO DO5_Program_Feed, 1;
+		SetDO DO5_Program_Feed, 1;        
+		WaitTime 0.3;
 		MoveL Offs(pZeroStarMute, 0.0, 17.691, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, -16.825, 5.467, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, -10.398, -14.312, 0.2), v30, z0, tNozzle, \Wobj := wobj1Star;
@@ -2343,6 +3000,7 @@ MODULE MainModule
 		WaitRob \InPos;
 		SetDO DO6_Between_Layer_Retract, 1;
 		SetDO DO5_Program_Feed, 0;
+        WaitTime 0.15;
 		MoveL Offs(pZeroStarMute, -8.57, -13.313, 5.8), v100, z0, tNozzle, \Wobj := wobj1Star;
 		MoveL Offs(pZeroStarMute, 0, 0, 50), v100, fine \Inpos := inpos50, tNozzle, \Wobj := wobj1Star;
 	ENDPROC
