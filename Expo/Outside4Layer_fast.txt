@@ -6,7 +6,7 @@ MODULE MainModule
 
     PERS robtarget rob1;
     
-    PERS intnum layerNum:=112;
+    PERS intnum layerNum:=113;
     
     VAR bool firstLayer := TRUE;
 
