@@ -6,7 +6,7 @@ MODULE MainModule
 
     PERS robtarget rob1;
     
-    PERS intnum layerNum:=124;
+    PERS intnum layerNum:=-1;
     
     VAR bool firstLayer := TRUE;
 
@@ -133,7 +133,7 @@ MODULE MainModule
 	
 	PROC Triang1()
 		! Layer 1 Triang
-		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		pZeroMute := Offs(pZero, 0, 0, 0.2*layerNum+65);
 		
 		MoveL Offs(pZeroMute, 0.0, 22.0, 5.2), v100, z0, tNozzle, \Wobj := wobjPlatform;
 		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
@@ -456,7 +456,7 @@ MODULE MainModule
 	
 	PROC Triang2()
 		! Layer 2 Triang
-		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		pZeroMute := Offs(pZero, 0, 0, 0.2*layerNum+65);
 		
 		MoveL Offs(pZeroMute, -19.053, -11.0, 5.4), v100, z0, tNozzle, \Wobj := wobjPlatform;
 		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
@@ -609,7 +609,7 @@ MODULE MainModule
 	
 	PROC Triang3()
 		! Layer 3 Triang
-		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		pZeroMute := Offs(pZero, 0, 0, 0.2*layerNum+65);
 		
 		MoveL Offs(pZeroMute, -19.053, -11.0, 5.6), v100, z0, tNozzle, \Wobj := wobjPlatform;
 		MoveL Offs(pZeroMute, -19.053, -11.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
@@ -762,7 +762,7 @@ MODULE MainModule
 	
 	PROC Triang4()
 		! Layer 4 Triang
-		pZeroMute := Offs(pZero, 0, 0, 0.2*(layerNum-81)+65);
+		pZeroMute := Offs(pZero, 0, 0, 0.2*layerNum+65);
 		
 		MoveL Offs(pZeroMute, 0.0, 22.0, 5.8), v100, z0, tNozzle, \Wobj := wobjPlatform;
 		MoveL Offs(pZeroMute, 0.0, 22.0, 0.2), v30, z0, tNozzle, \Wobj := wobjPlatform;
