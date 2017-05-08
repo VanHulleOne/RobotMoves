@@ -63,6 +63,16 @@ class Quat:
         quat[Y] = self.w*other.y - self.x*other.z + self.y*other.w + self.z*other.x
         quat[Z] = self.w*other.z + self.x*other.y - self.y*other.x + self.z*other.w
         return Quat(quat)
+        
+    def __eq__(self, other):
+        tolerance = 0.001
+        sArray = np.array(list(self))
+        oArray = np.array(list(other))
+        res = sArray @ oArray
+        if abs(res) - 1 < tolerance:
+            return True
+        return False
+        
     
     def __str__(self):
         return '[' + ', '.join('{:0.7g}'.format(round(i,self.PRECISION)) for i in self) + ']'
@@ -165,8 +175,8 @@ def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, s
             yield moveL(top_point, quat, config, 30)
         
         
-for line in move_circle(centerX=249.47, centerY=108.27, centerZ=65+50, radius=10.185, height=25, numPoints=128, dir_=CCW, startAngle=0):
-    print(line, end='')
+#for line in move_circle(centerX=249.47, centerY=108.27, centerZ=65+50, radius=10.185, height=25, numPoints=128, dir_=CCW, startAngle=0):
+#    print(line, end='')
 #    outfile.write(move)
     
 
