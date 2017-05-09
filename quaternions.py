@@ -18,6 +18,8 @@ CCW = 1
 MOVEL = 'MoveL'
 MOVEJ = 'MoveJ'
 
+NOZ_DIA = 0.5
+
 class Quat:
     def __init__(self, w, x=None, y=None, z=None):
         self.PRECISION = 7
@@ -50,7 +52,9 @@ class Quat:
         quat[W] = np.cos(rad/2)
         quat[axis] = np.sin(rad/2)
         return Quat(quat)*self
-    
+        
+    def __getitem__(self, index):
+        return self._key()[index]
     
     def __mul__(self, other):
         """
@@ -82,7 +86,7 @@ class Quat:
 
 def move(type_, point, quat, config, speed):
     tool = 'tNozzle'
-    workObj = 'wobjPlatform'
+    workObj = 'wobjFlatPlat'
 
     return ('\t\t' + type_ + ' [[' +
             ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
@@ -110,6 +114,41 @@ def circle_quat(*, numPoints, dir_, startAngle):
     step = np.pi*2/numPoints
     for i in range(numPoints):
         yield quat.rotate_rad('z', startRad+i*step*dir_)
+
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=15, height=75):
+    config = np.array([-1,1,1,1])
+    startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
+    
+    circumf = np.pi*dia
+    numRadialPoints = round(circumf/NOZ_DIA) # Rounds to nearest integer, may over/under fill
+    numHeightPoints = int((height//(circumf/4)))+1
+    heightStep = height/numHeightPoints
+    mainRotAngle = heightStep/circumf*2*np.pi
+    stepOverRotAngle = NOZ_DIA/circumf*2*np.pi
+    rad = dia/2
+    print('Main:', mainRotAngle, 'Step:', stepOverRotAngle)
+    angle = 0
+    height = centerZ
+    
+    yield moveJ((rad,0,height), startQuat, config, 100)
+    
+    for i in range(numRadialPoints):
+        # if i is even we are moving up so add
+        dir_ = (-1 if i%2 else 1)
+        for j in range(numHeightPoints):
+            angle += dir_ * mainRotAngle
+            height += dir_ * heightStep
+            x = rad * np.cos(angle)
+            y = rad * np.sin(angle)
+            quat = startQuat.rotate_rad('z', angle)
+           # yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
+            yield moveL((x,y,height), quat, config, 100)
+        angle += stepOverRotAngle
+        x = rad * np.cos(angle)
+        y = rad * np.sin(angle)
+        quat = startQuat.rotate_rad('z', angle)
+       # yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
+        yield moveL((x,y,height), quat, config, 100)
 
 def reorient():
     yield '\t\tjRepo := CJointT();\n'
@@ -237,7 +276,12 @@ def rotation_quat(axis, deg):
     return Quat(quat)
 
     
-
+def writePoints(points):
+    with open('path.mod', 'w') as f:
+        f.write('MODULE MainModule\n\tPROC main()\n')
+        for line in points:
+            f.write(line)
+        f.write('\tENDPROC\nENDMODULE')
        
         
         
