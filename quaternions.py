@@ -141,14 +141,14 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=15, height=75):
             x = rad * np.cos(angle)
             y = rad * np.sin(angle)
             quat = startQuat.rotate_rad('z', angle)
-           # yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
-            yield moveL((x,y,height), quat, config, 100)
+            #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
+            yield moveJ((x,y,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
         angle += stepOverRotAngle
         x = rad * np.cos(angle)
         y = rad * np.sin(angle)
         quat = startQuat.rotate_rad('z', angle)
-       # yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
-        yield moveL((x,y,height), quat, config, 100)
+        #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
+        yield moveJ((x,y,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
 
 def reorient():
     yield '\t\tjRepo := CJointT();\n'
