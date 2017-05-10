@@ -115,7 +115,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, ve
     rad = dia/2
     print('Main:', mainRotAngle, 'Step:', stepOverRotAngle)
     print('Rad Points:', numRadialPoints, 'Height Points:', numHeightPoints)
-    beadError = (numRadialPoints*0.5 - circumf)/numRadialPoints
+    beadError = (numRadialPoints*NOZ_DIA - circumf)/numRadialPoints
     print('BeadError:', beadError)
     angle = 0
     currHeight = centerZ
@@ -132,13 +132,11 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, ve
             x = rad * np.cos(angle)
             y = rad * np.sin(angle)
             quat = startQuat.rotate_rad('z', angle)
-            #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
             yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
         angle += stepOverRotAngle
         x = rad * np.cos(angle)
         y = rad * np.sin(angle)
         quat = startQuat.rotate_rad('z', angle)
-        #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
         yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
     yield moveJ((x+10,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
@@ -200,10 +198,28 @@ def rotation_quat(axis, deg):
 
     
 def writePoints(points):
+    points = list(points)
     with open('path.mod', 'w') as f:
         f.write('MODULE MainModule\n\tPROC main()\n')
-        for line in points:
+        f.write('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+        f.write('\t\tSetDO DO1_Auto_Mode, 1;\n')
+        f.write(points[0])
+        f.write(points[1])
+        f.write('\t\tWaitRob \InPos;\n' +
+                '\t\tSetDO DO5_Program_Feed, 1;\n')
+        for line in points[2:-1]:
             f.write(line)
+        f.write('\t\tWaitRob \InPos;\n'
+                + '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
+                + '\t\tSetDO DO5_Program_Feed, 0;\n')
+        f.write(points[-1])
+        f.write('\n\t\t! End Program codes\n' +
+                '\t\tSetDO DO1_Auto_Mode, 0;\n' +
+                '\t\tSetDO DO5_Program_Feed, 0;\n' +
+                '\t\tSetDO DO3_Heat_Bed, 0;\n' +
+                '\t\tSetDO DO4_Heat_Nozzle, 0;\n' +
+                '\t\tSetDO DO6_Between_Layer_Retract, 0;\n'
+                )
         f.write('\tENDPROC\nENDMODULE')
        
         
