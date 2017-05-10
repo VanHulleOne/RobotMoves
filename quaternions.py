@@ -102,123 +102,46 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):    
-    startRad = startAngle/360.0*np.pi*2
-    for i in range(numPoints):
-        radians = (2*np.pi/numPoints)*i*dir_ + startRad
-        yield centerX + radius*np.cos(radians), centerY + radius*np.sin(radians), centerZ
-
-def circle_quat(*, numPoints, dir_, startAngle):
-    startRad = startAngle/360.0*2*np.pi
-    quat = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
-    step = np.pi*2/numPoints
-    for i in range(numPoints):
-        yield quat.rotate_rad('z', startRad+i*step*dir_)
-
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=15, height=75):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, vel=30):
     config = np.array([-1,1,1,1])
     startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
     
     circumf = np.pi*dia
-    numRadialPoints = round(circumf/NOZ_DIA) # Rounds to nearest integer, may over/under fill
+    numRadialPoints = int(round(circumf/NOZ_DIA)) # Rounds to nearest integer, may over/under fill
     numHeightPoints = int((height//(circumf/4)))+1
     heightStep = height/numHeightPoints
     mainRotAngle = heightStep/circumf*2*np.pi
     stepOverRotAngle = NOZ_DIA/circumf*2*np.pi
     rad = dia/2
     print('Main:', mainRotAngle, 'Step:', stepOverRotAngle)
+    print('Rad Points:', numRadialPoints, 'Height Points:', numHeightPoints)
+    beadError = (numRadialPoints*0.5 - circumf)/numRadialPoints
+    print('BeadError:', beadError)
     angle = 0
-    height = centerZ
+    currHeight = centerZ
     
-    yield moveJ((rad,0,height), startQuat, config, 100)
+    yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
+    yield moveJ((rad,0,currHeight), startQuat, config, vel)
     
     for i in range(numRadialPoints):
-        # if i is even we are moving up so add
+        # if i is odd we are moving down so subtract
         dir_ = (-1 if i%2 else 1)
         for j in range(numHeightPoints):
             angle += dir_ * mainRotAngle
-            height += dir_ * heightStep
+            currHeight += dir_ * heightStep
             x = rad * np.cos(angle)
             y = rad * np.sin(angle)
             quat = startQuat.rotate_rad('z', angle)
             #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
-            yield moveJ((x,y,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
+            yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
         angle += stepOverRotAngle
         x = rad * np.cos(angle)
         y = rad * np.sin(angle)
         quat = startQuat.rotate_rad('z', angle)
         #yield moveL((0,0,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
-        yield moveJ((x,y,height), quat, config-[0,0,int(angle/(np.pi/2)),0], 100)
-
-def reorient():
-    yield '\t\tjRepo := CJointT();\n'
-    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 - 60;\n'
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-    yield '\t\tjRepo.robax.rax_4 := jRepo.robax.rax_4 + 180;\n'
-    yield '\t\tjRepo.robax.rax_5 := jRepo.robax.rax_5 + 120;\n'
-    yield '\t\tjRepo.robax.rax_6 := jRepo.robax.rax_6 + 180;\n'
-        
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 + 60;\n'
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-        
-def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, startAngle):
-    START_RAD = startAngle/360.0*2*np.pi
-    STEP_RAD = np.pi*2/numPoints
-    REF_QUAT = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
-    A4_CONFIGS = [2, 1, 0, -1, -2]
-    first = True
-    for i in range(numPoints//2):
-        currAngle = START_RAD + i*STEP_RAD*dir_
-        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
-        top_point = [base_point[0], base_point[1], base_point[2]+height]
-        quat = REF_QUAT.rotate_rad('z', currAngle)
-        config = [-1, A4_CONFIGS[int(i/((numPoints/2)/len(A4_CONFIGS)))], 0, 1]
-        if first:
-            first = False
-            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
-        if i%2:
-            """
-            If the line number is even then first position is at full height
-            second position is at base.
-            """
-            yield moveL(top_point, quat, config, 30)
-            yield moveL(base_point, quat, config, 30)
-        else:            
-            yield moveL(base_point, quat, config, 30)
-            yield moveL(top_point, quat, config, 30)
-
-    top_point[2] += 75
-    yield moveL(top_point, quat, config, 30)         
-     
-    yield from reorient()
-    first = True
-    for i in range(numPoints//2, numPoints):
-        currAngle = START_RAD + i*STEP_RAD*dir_
-        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
-        top_point = [base_point[0], base_point[1], base_point[2]+height]
-        quat = REF_QUAT.rotate_rad('z', currAngle)
-        config = [-1, A4_CONFIGS[int((i-numPoints//2)/((numPoints/2)/len(A4_CONFIGS)))], 3, 0]
-        if first:
-            first = False
-            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
-        if i%2:
-            """
-            If the line number is even then first position is at full height
-            second position is at base.
-            """
-            yield moveL(top_point, quat, config, 30)
-            yield moveL(base_point, quat, config, 30)
-        else:            
-            yield moveL(base_point, quat, config, 30)
-            yield moveL(top_point, quat, config, 30)
-        
-        
-#for line in move_circle(centerX=249.47, centerY=108.27, centerZ=65+50, radius=10.185, height=25, numPoints=128, dir_=CCW, startAngle=0):
-#    print(line, end='')
-#    outfile.write(move)
-    
-
+        yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
+    yield moveJ((x+10,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
+    yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     
 def mat2quat(m):
     q1 = np.sqrt(m[0,0] + m[1,1] + m[2,2] + 1)/2
