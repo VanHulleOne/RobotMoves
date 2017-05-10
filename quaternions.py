@@ -18,7 +18,7 @@ CCW = 1
 MOVEL = 'MoveL'
 MOVEJ = 'MoveJ'
 
-NOZ_DIA = 0.5
+NOZ_DIA = 0.5/(np.sqrt(2)/2)
 
 class Quat:
     def __init__(self, w, x=None, y=None, z=None):
