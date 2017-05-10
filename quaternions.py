@@ -122,7 +122,9 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, ve
     
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     yield moveJ((rad,0,currHeight), startQuat, config, vel)
-    
+    yield ('\t\tWaitRob \InPos;\n' +
+            '\t\tSetDO DO6_Between_Layer_Retract, 0;\n' + 
+            '\t\tSetDO DO5_Program_Feed, 1;\n')
     for i in range(numRadialPoints):
         # if i is odd we are moving down so subtract
         dir_ = (-1 if i%2 else 1)
@@ -138,7 +140,11 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, ve
         y = rad * np.sin(angle)
         quat = startQuat.rotate_rad('z', angle)
         yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
-    yield moveJ((x+10,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
+        
+    yield ('\t\tWaitRob \InPos;\n'
+            + '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
+            + '\t\tSetDO DO5_Program_Feed, 0;\n')    
+    yield moveJ((x+10,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)    
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     
 def mat2quat(m):
@@ -196,6 +202,13 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
+def multiLayer(*, centerX=0, centerY=0, centerZ=15, initialDia=17.6, height=55, vel=30, numLayers=1):
+    layerHeight = 0.2 # mm
+    for layerNum in range(numLayers):
+        yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
+        yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
+                                   dia = initialDia + 2*layerHeight*(layerNum+1),
+                                    height=height,vel=vel)
     
 def writePoints(points):
     points = list(points)
@@ -203,16 +216,8 @@ def writePoints(points):
         f.write('MODULE MainModule\n\tPROC main()\n')
         f.write('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
         f.write('\t\tSetDO DO1_Auto_Mode, 1;\n')
-        f.write(points[0])
-        f.write(points[1])
-        f.write('\t\tWaitRob \InPos;\n' +
-                '\t\tSetDO DO5_Program_Feed, 1;\n')
-        for line in points[2:-1]:
+        for line in points:
             f.write(line)
-        f.write('\t\tWaitRob \InPos;\n'
-                + '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
-                + '\t\tSetDO DO5_Program_Feed, 0;\n')
-        f.write(points[-1])
         f.write('\n\t\t! End Program codes\n' +
                 '\t\tSetDO DO1_Auto_Mode, 0;\n' +
                 '\t\tSetDO DO5_Program_Feed, 0;\n' +
