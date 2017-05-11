@@ -148,13 +148,13 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, st
         for j in range(numHeightPoints):
             angle += dir_ * mainRotAngle
             currHeight += dir_ * heightStep
-            x = rad * np.cos(angle)
-            y = rad * np.sin(angle)
+            x = rad * np.cos(angle) + centerX
+            y = rad * np.sin(angle) + centerY
             quat = startQuat.rotate_rad('z', angle)
             yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
         angle += stepOverRotAngle
-        x = rad * np.cos(angle)
-        y = rad * np.sin(angle)
+        x = rad * np.cos(angle) + centerX
+        y = rad * np.sin(angle) + centerY
         quat = startQuat.rotate_rad('z', angle)
         yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
         
