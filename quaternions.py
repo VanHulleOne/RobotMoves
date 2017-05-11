@@ -102,21 +102,38 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+    stepOver = abs(stepOver)
     config = np.array([-1,1,1,1])
     startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
+    maxOneMoveRotation = np.pi/2
+    maxBeadOverlap = NOZ_DIA*0.01
     
     circumf = np.pi*dia
-    numRadialPoints = int(round(circumf/NOZ_DIA)) # Rounds to nearest integer, may over/under fill
-    numHeightPoints = int((height//(circumf/4)))+1
-    heightStep = height/numHeightPoints
-    mainRotAngle = heightStep/circumf*2*np.pi
-    stepOverRotAngle = NOZ_DIA/circumf*2*np.pi
     rad = dia/2
-    print('Main:', mainRotAngle, 'Step:', stepOverRotAngle)
+    
+    numRadialPoints = int(round(circumf*np.sin(helixAngle)/stepOver)) # Rounds to nearest integer, may over/under fill
+    if numRadialPoints == 0:
+        raise Exception('Helix Angle too flat')
+    actStepOver = np.sin(helixAngle)*circumf/numRadialPoints
+    beadOverlap = stepOver-actStepOver
+    if beadOverlap > maxBeadOverlap:
+        numRadialPoints -= numRadialPoints/abs(numRadialPoints) # numRadialPoints can be positive or negative so use this
+                                                                # trick to move it closer to zero if beadOverlap is too great
+        if numRadialPoints == 0:
+            raise Exception('Helix Angle too flat')
+    
+    stepOverRotAngle = 2*np.pi/numRadialPoints
+    
+    idealStepHeight = np.tan(helixAngle)*maxOneMoveRotation*circumf/(2*np.pi)
+    numHeightPoints = abs(int(height//idealStepHeight))+1
+    heightStep = height/numHeightPoints
+    mainRotAngle = heightStep/(circumf*np.tan(helixAngle))*2*np.pi
+    
+    
+    print('Main Angle:', mainRotAngle, 'Stepover Angle:', stepOverRotAngle)
     print('Rad Points:', numRadialPoints, 'Height Points:', numHeightPoints)
-    beadError = (numRadialPoints*NOZ_DIA - circumf)/numRadialPoints
-    print('BeadError:', beadError)
+    print('Bead Overlap:', beadOverlap)
     angle = 0
     currHeight = centerZ
     
@@ -125,7 +142,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, ve
     yield ('\t\tWaitRob \InPos;\n' +
             '\t\tSetDO DO6_Between_Layer_Retract, 0;\n' + 
             '\t\tSetDO DO5_Program_Feed, 1;\n')
-    for i in range(numRadialPoints):
+    for i in range(abs(numRadialPoints)):
         # if i is odd we are moving down so subtract
         dir_ = (-1 if i%2 else 1)
         for j in range(numHeightPoints):
