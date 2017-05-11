@@ -5,6 +5,7 @@ Created on Mon Aug 15 13:32:57 2016
 @author: lvanhulle
 """
 import numpy as np
+from itertools import cycle
 
 rotMat = 0
 W = 0
@@ -219,13 +220,23 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
-def multiLayer(*, centerX=0, centerY=0, centerZ=15, initialDia=17.6, height=55, vel=30, numLayers=1):
-    layerHeight = 0.2 # mm
-    for layerNum in range(numLayers):
+def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
+               initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
+    if angles is None:
+        angles = [45]
+    try:
+        list(angles)
+    except Exception:
+        angles = [angles]
+    angles = cycle(np.array(angles)/(360.0)*2*np.pi)
+    for layerNum, angle in zip(range(numLayers), angles):
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
-                                    height=height,vel=vel)
+                                    stepOver=0.6,
+                                    helixAngle = angle,
+                                    height=height,
+                                    vel=vel)
     
 def writePoints(points):
     points = list(points)
