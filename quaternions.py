@@ -117,9 +117,9 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, st
     if numRadialPoints == 0:
         raise Exception('Helix Angle too flat')
     actStepOver = np.sin(helixAngle)*circumf/numRadialPoints
-    beadOverlap = stepOver-actStepOver
+    beadOverlap = NOZ_DIA-actStepOver
     if beadOverlap > maxBeadOverlap:
-        numRadialPoints -= numRadialPoints/abs(numRadialPoints) # numRadialPoints can be positive or negative so use this
+        numRadialPoints -= int(numRadialPoints/abs(numRadialPoints)) # numRadialPoints can be positive or negative so use this
                                                                 # trick to move it closer to zero if beadOverlap is too great
         if numRadialPoints == 0:
             raise Exception('Helix Angle too flat')
