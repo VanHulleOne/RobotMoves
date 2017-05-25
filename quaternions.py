@@ -162,7 +162,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, st
     yield ('\t\tWaitRob \InPos;\n'
             + '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
             + '\t\tSetDO DO5_Program_Feed, 0;\n')    
-    yield moveJ((x+10,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)    
+    yield moveJ((x+10*np.cos(angle),y+10*np.sin(angle),currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)    
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     
 def mat2quat(m):
