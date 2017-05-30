@@ -5,6 +5,7 @@ Created on Mon Aug 15 13:32:57 2016
 @author: lvanhulle
 """
 import numpy as np
+from itertools import cycle
 
 rotMat = 0
 W = 0
@@ -21,6 +22,8 @@ CCW = 1
 
 MOVEL = 'MoveL'
 MOVEJ = 'MoveJ'
+
+NOZ_DIA = 0.5/(np.sqrt(2)/2)
 
 class Quat:
     def __init__(self, w, x=None, y=None, z=None):
@@ -54,7 +57,9 @@ class Quat:
         quat[W] = np.cos(rad/2)
         quat[axis] = np.sin(rad/2)
         return Quat(quat)*self
-    
+        
+    def __getitem__(self, index):
+        return self._key()[index]
     
     def __mul__(self, other):
         """
@@ -86,7 +91,7 @@ class Quat:
 
 def move(type_, point, quat, config, speed):
     tool = 'tNozzle'
-    workObj = 'wobjPlatform'
+    workObj = 'wobjFlatPlat'
 
     return ('\t\t' + type_ + ' [[' +
             ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
@@ -102,88 +107,67 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def circle(*, centerX, centerY, centerZ=0, radius, numPoints, dir_, startAngle):    
-    startRad = startAngle/360.0*np.pi*2
-    for i in range(numPoints):
-        radians = (2*np.pi/numPoints)*i*dir_ + startRad
-        yield centerX + radius*np.cos(radians), centerY + radius*np.sin(radians), centerZ
-
-def circle_quat(*, numPoints, dir_, startAngle):
-    startRad = startAngle/360.0*2*np.pi
-    quat = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
-    step = np.pi*2/numPoints
-    for i in range(numPoints):
-        yield quat.rotate_rad('z', startRad+i*step*dir_)
-
-def reorient():
-    yield '\t\tjRepo := CJointT();\n'
-    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 - 60;\n'
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-    yield '\t\tjRepo.robax.rax_4 := jRepo.robax.rax_4 + 180;\n'
-    yield '\t\tjRepo.robax.rax_5 := jRepo.robax.rax_5 + 120;\n'
-    yield '\t\tjRepo.robax.rax_6 := jRepo.robax.rax_6 + 180;\n'
-        
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-    yield '\t\tjRepo.robax.rax_3 := jRepo.robax.rax_3 + 60;\n'
-    yield '\t\tMoveAbsJ jRepo, v300, z10, tNozzle\WObj:=wobjPlatform;\n'
-        
-def move_circle(*, centerX, centerY, centerZ, radius, height, numPoints, dir_, startAngle):
-    START_RAD = startAngle/360.0*2*np.pi
-    STEP_RAD = np.pi*2/numPoints
-    REF_QUAT = Quat(0.5, -0.5, -0.5, 0.5) # Side 3 up is our reference zero
-    A4_CONFIGS = [2, 1, 0, -1, -2]
-    first = True
-    for i in range(numPoints//2):
-        currAngle = START_RAD + i*STEP_RAD*dir_
-        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
-        top_point = [base_point[0], base_point[1], base_point[2]+height]
-        quat = REF_QUAT.rotate_rad('z', currAngle)
-        config = [-1, A4_CONFIGS[int(i/((numPoints/2)/len(A4_CONFIGS)))], 0, 1]
-        if first:
-            first = False
-            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
-        if i%2:
-            """
-            If the line number is even then first position is at full height
-            second position is at base.
-            """
-            yield moveL(top_point, quat, config, 30)
-            yield moveL(base_point, quat, config, 30)
-        else:            
-            yield moveL(base_point, quat, config, 30)
-            yield moveL(top_point, quat, config, 30)
-
-    top_point[2] += 75
-    yield moveL(top_point, quat, config, 30)         
-     
-    yield from reorient()
-    first = True
-    for i in range(numPoints//2, numPoints):
-        currAngle = START_RAD + i*STEP_RAD*dir_
-        base_point = [centerX + radius*np.cos(currAngle), centerY + radius*np.sin(currAngle), centerZ]
-        top_point = [base_point[0], base_point[1], base_point[2]+height]
-        quat = REF_QUAT.rotate_rad('z', currAngle)
-        config = [-1, A4_CONFIGS[int((i-numPoints//2)/((numPoints/2)/len(A4_CONFIGS)))], 3, 0]
-        if first:
-            first = False
-            yield moveJ([top_point[0], top_point[1], top_point[2]+75], quat, config, 300)
-        if i%2:
-            """
-            If the line number is even then first position is at full height
-            second position is at base.
-            """
-            yield moveL(top_point, quat, config, 30)
-            yield moveL(base_point, quat, config, 30)
-        else:            
-            yield moveL(base_point, quat, config, 30)
-            yield moveL(top_point, quat, config, 30)
-        
-        
-#for line in move_circle(centerX=249.47, centerY=108.27, centerZ=65+50, radius=10.185, height=25, numPoints=128, dir_=CCW, startAngle=0):
-#    print(line, end='')
-#    outfile.write(move)
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+    stepOver = abs(stepOver)
+    config = np.array([-1,1,1,1])
+    startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
+    maxOneMoveRotation = np.pi/2
+    maxBeadOverlap = NOZ_DIA*0.01
     
-
+    circumf = np.pi*dia
+    rad = dia/2
+    
+    numRadialPoints = int(round(circumf*np.sin(helixAngle)/stepOver)) # Rounds to nearest integer, may over/under fill
+    if numRadialPoints == 0:
+        raise Exception('Helix Angle too flat')
+    actStepOver = np.sin(helixAngle)*circumf/numRadialPoints
+    beadOverlap = NOZ_DIA-actStepOver
+    if beadOverlap > maxBeadOverlap:
+        numRadialPoints -= int(numRadialPoints/abs(numRadialPoints)) # numRadialPoints can be positive or negative so use this
+                                                                # trick to move it closer to zero if beadOverlap is too great
+        if numRadialPoints == 0:
+            raise Exception('Helix Angle too flat')
+    
+    stepOverRotAngle = 2*np.pi/numRadialPoints
+    
+    idealStepHeight = np.tan(helixAngle)*maxOneMoveRotation*circumf/(2*np.pi)
+    numHeightPoints = abs(int(height//idealStepHeight))+1
+    heightStep = height/numHeightPoints
+    mainRotAngle = heightStep/(circumf*np.tan(helixAngle))*2*np.pi
+    
+    
+    print('Main Angle:', mainRotAngle, 'Stepover Angle:', stepOverRotAngle)
+    print('Rad Points:', numRadialPoints, 'Height Points:', numHeightPoints)
+    print('Bead Overlap:', beadOverlap)
+    angle = 0
+    currHeight = centerZ
+    
+    yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
+    yield moveJ((rad,0,currHeight), startQuat, config, vel)
+    yield ('\t\tWaitRob \InPos;\n' +
+            '\t\tSetDO DO6_Between_Layer_Retract, 0;\n' + 
+            '\t\tSetDO DO5_Program_Feed, 1;\n')
+    for i in range(abs(numRadialPoints)):
+        # if i is odd we are moving down so subtract
+        dir_ = (-1 if i%2 else 1)
+        for j in range(numHeightPoints):
+            angle += dir_ * mainRotAngle
+            currHeight += dir_ * heightStep
+            x = rad * np.cos(angle) + centerX
+            y = rad * np.sin(angle) + centerY
+            quat = startQuat.rotate_rad('z', angle)
+            yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
+        angle += stepOverRotAngle
+        x = rad * np.cos(angle) + centerX
+        y = rad * np.sin(angle) + centerY
+        quat = startQuat.rotate_rad('z', angle)
+        yield moveJ((x,y,currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)
+        
+    yield ('\t\tWaitRob \InPos;\n'
+            + '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
+            + '\t\tSetDO DO5_Program_Feed, 0;\n')    
+    yield moveJ((x+10*np.cos(angle),y+10*np.sin(angle),currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)    
+    yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     
 def mat2quat(m):
     q1 = np.sqrt(m[0,0] + m[1,1] + m[2,2] + 1)/2
@@ -240,8 +224,40 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
+def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
+               initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
+    if angles is None:
+        angles = [45]
+    try:
+        list(angles)
+    except Exception:
+        angles = [angles]
+    angles = cycle(np.array(angles)/(360.0)*2*np.pi)
+    for layerNum, angle in zip(range(numLayers), angles):
+        yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
+        yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
+                                   dia = initialDia + 2*layerHeight*(layerNum+1),
+                                    stepOver=0.6,
+                                    helixAngle = angle,
+                                    height=height,
+                                    vel=vel)
     
-
+def writePoints(points):
+    points = list(points)
+    with open('path.mod', 'w') as f:
+        f.write('MODULE MainModule\n\tPROC main()\n')
+        f.write('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+        f.write('\t\tSetDO DO1_Auto_Mode, 1;\n')
+        for line in points:
+            f.write(line)
+        f.write('\n\t\t! End Program codes\n' +
+                '\t\tSetDO DO1_Auto_Mode, 0;\n' +
+                '\t\tSetDO DO5_Program_Feed, 0;\n' +
+                '\t\tSetDO DO3_Heat_Bed, 0;\n' +
+                '\t\tSetDO DO4_Heat_Nozzle, 0;\n' +
+                '\t\tSetDO DO6_Between_Layer_Retract, 0;\n'
+                )
+        f.write('\tENDPROC\nENDMODULE')
        
         
         
