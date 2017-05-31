@@ -107,7 +107,14 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+    if endZ is None and length is None:
+        raise Exception('Must enter length or endZ')
+    if endZ is not None and length is not None:
+        raise Exception('Must enter only one length or endZ')
+    if length is None:
+        length = endZ - centerZ
+        
     stepOver = abs(stepOver)
     config = np.array([-1,1,1,1])
     startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
@@ -126,13 +133,13 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, st
         numRadialPoints -= int(numRadialPoints/abs(numRadialPoints)) # numRadialPoints can be positive or negative so use this
                                                                 # trick to move it closer to zero if beadOverlap is too great
         if numRadialPoints == 0:
-            raise Exception('Helix Angle too flat')
+            raise Exception('Reduced numRadialPoints by 1 and now Helix Angle too flat')
     
     stepOverRotAngle = 2*np.pi/numRadialPoints
     
     idealStepHeight = np.tan(helixAngle)*maxOneMoveRotation*circumf/(2*np.pi)
-    numHeightPoints = abs(int(height//idealStepHeight))+1
-    heightStep = height/numHeightPoints
+    numHeightPoints = abs(int(length//idealStepHeight))+1
+    heightStep = length/numHeightPoints
     mainRotAngle = heightStep/(circumf*np.tan(helixAngle))*2*np.pi
     
     
