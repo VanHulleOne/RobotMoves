@@ -248,8 +248,8 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight,
                                    stepOver=0.6,
-                                   helixAngle=np.pi/2,
-                                   endZ = startZbottom + gripLength - zReduction,
+                                   helixAngleDeg=90,
+                                   endZ = startZbottom + gripLength - zReduction
                                    )
         
     # Top grip - grip farthest from platform
@@ -259,8 +259,8 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield from outsideCylinder(centerZ=startZtop + zReduction,
                                    dia = startDia+layerNumber*layerHeight,
                                    stepOver=0.6,
-                                   helixAngle=np.pi/2,
-                                   endZ = startZtop + gripLength,
+                                   helixAngleDeg=90,
+                                   endZ = startZtop + gripLength
                                    )
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
