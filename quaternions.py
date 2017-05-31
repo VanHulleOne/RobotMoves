@@ -231,19 +231,36 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
-def circleHeightReduction_gen(layerHeight, circleRad):
-    
+def circleHeightReduction_gen(layerHeight, circleRad):    
     for i in range(int(circleRad//layerHeight)):
         x = circleRad-layerHeight*i
         t = np.arccos(x/circleRad)
         z = circleRad*np.sin(t)
         yield z
 
-def baseGrip(startZ, endZ, startDia, layerHeight=0.2, radialThickness=5, filletRadius=25):
+def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25):
+    numLayers = int(radialThickness//layerHeight)
+    # base grib - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
-                                       range(int(radialThickness//layerHeight))):
-        yield from outsideCylinder()
-    
+                                       range(numLayers)):  
+        yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
+        yield from outsideCylinder(centerZ=startZbottom,
+                                   dia = startDia+layerNumber*layerHeight,
+                                   stepOver=0.6,
+                                   helixAngle=np.pi/2,
+                                   endZ = startZbottom + gripLength - zReduction,
+                                   )
+        
+    # Top grip - grip farthest from platform
+    for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
+                                       range(numLayers)):
+        yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
+        yield from outsideCylinder(centerZ=startZtop + zReduction,
+                                   dia = startDia+layerNumber*layerHeight,
+                                   stepOver=0.6,
+                                   helixAngle=np.pi/2,
+                                   endZ = startZtop + gripLength,
+                                   )
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
