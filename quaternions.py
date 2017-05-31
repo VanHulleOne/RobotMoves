@@ -277,7 +277,7 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
                                     stepOver=0.6,
                                     helixAngle = angle,
-                                    height=height,
+                                    length=height,
                                     vel=vel)
     
 def writePoints(points):
