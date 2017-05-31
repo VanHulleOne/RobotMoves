@@ -107,14 +107,15 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngleDeg=np.pi/4, vel=30):
     if endZ is None and length is None:
         raise Exception('Must enter length or endZ')
     if endZ is not None and length is not None:
         raise Exception('Must enter only one length or endZ')
     if length is None:
         length = endZ - centerZ
-        
+    
+    helixAngleRad = (helixAngleDeg/360)*2*np.pi
     stepOver = abs(stepOver)
     config = np.array([-1,1,1,1])
     startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
@@ -124,10 +125,10 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
     circumf = np.pi*dia
     rad = dia/2
     
-    numRadialPoints = int(round(circumf*np.sin(helixAngle)/stepOver)) # Rounds to nearest integer, may over/under fill
+    numRadialPoints = int(round(circumf*np.sin(helixAngleRad)/stepOver)) # Rounds to nearest integer, may over/under fill
     if numRadialPoints == 0:
         raise Exception('Helix Angle too flat')
-    actStepOver = np.sin(helixAngle)*circumf/numRadialPoints
+    actStepOver = np.sin(helixAngleRad)*circumf/numRadialPoints
     beadOverlap = NOZ_DIA-actStepOver
     if beadOverlap > maxBeadOverlap:
         numRadialPoints -= int(numRadialPoints/abs(numRadialPoints)) # numRadialPoints can be positive or negative so use this
@@ -137,10 +138,10 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
     
     stepOverRotAngle = 2*np.pi/numRadialPoints
     
-    idealStepHeight = np.tan(helixAngle)*maxOneMoveRotation*circumf/(2*np.pi)
+    idealStepHeight = np.tan(helixAngleRad)*maxOneMoveRotation*circumf/(2*np.pi)
     numHeightPoints = abs(int(length//idealStepHeight))+1
     heightStep = length/numHeightPoints
-    mainRotAngle = heightStep/(circumf*np.tan(helixAngle))*2*np.pi
+    mainRotAngle = heightStep/(circumf*np.tan(helixAngleRad))*2*np.pi
     
     
     print('Main Angle:', mainRotAngle, 'Stepover Angle:', stepOverRotAngle)
@@ -270,13 +271,13 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
         list(angles)
     except Exception:
         angles = [angles]
-    angles = cycle(np.array(angles)/(360.0)*2*np.pi)
+    angles = cycle(np.array(angles))
     for layerNum, angle in zip(range(numLayers), angles):
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
                                     stepOver=0.6,
-                                    helixAngle = angle,
+                                    helixAngleDeg = angle,
                                     length=height,
                                     vel=vel)
     
