@@ -224,6 +224,20 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
+def circleHeightReduction_gen(layerHeight, circleRad):
+    
+    for i in range(int(circleRad//layerHeight)):
+        x = circleRad-layerHeight*i
+        t = np.arccos(x/circleRad)
+        z = circleRad*np.sin(t)
+        yield z
+
+def baseGrip(startZ, endZ, startDia, layerHeight=0.2, radialThickness=5, filletRadius=25):
+    for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
+                                       range(int(radialThickness//layerHeight))):
+        yield from outsideCylinder()
+    
+
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
     if angles is None:
