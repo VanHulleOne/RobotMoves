@@ -107,7 +107,15 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, stepOver=NOZ_DIA, helixAngle=np.pi/4, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngleDeg=np.pi/4, vel=30):
+    if endZ is None and length is None:
+        raise Exception('Must enter length or endZ')
+    if endZ is not None and length is not None:
+        raise Exception('Must enter only one length or endZ')
+    if length is None:
+        length = endZ - centerZ
+    
+    helixAngleRad = (helixAngleDeg/360)*2*np.pi
     stepOver = abs(stepOver)
     config = np.array([-1,1,1,1])
     startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981)
@@ -117,23 +125,23 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, height=55, st
     circumf = np.pi*dia
     rad = dia/2
     
-    numRadialPoints = int(round(circumf*np.sin(helixAngle)/stepOver)) # Rounds to nearest integer, may over/under fill
+    numRadialPoints = int(round(circumf*np.sin(helixAngleRad)/stepOver)) # Rounds to nearest integer, may over/under fill
     if numRadialPoints == 0:
         raise Exception('Helix Angle too flat')
-    actStepOver = np.sin(helixAngle)*circumf/numRadialPoints
+    actStepOver = np.sin(helixAngleRad)*circumf/numRadialPoints
     beadOverlap = NOZ_DIA-actStepOver
     if beadOverlap > maxBeadOverlap:
         numRadialPoints -= int(numRadialPoints/abs(numRadialPoints)) # numRadialPoints can be positive or negative so use this
                                                                 # trick to move it closer to zero if beadOverlap is too great
         if numRadialPoints == 0:
-            raise Exception('Helix Angle too flat')
+            raise Exception('Reduced numRadialPoints by 1 and now Helix Angle too flat')
     
     stepOverRotAngle = 2*np.pi/numRadialPoints
     
-    idealStepHeight = np.tan(helixAngle)*maxOneMoveRotation*circumf/(2*np.pi)
-    numHeightPoints = abs(int(height//idealStepHeight))+1
-    heightStep = height/numHeightPoints
-    mainRotAngle = heightStep/(circumf*np.tan(helixAngle))*2*np.pi
+    idealStepHeight = np.tan(helixAngleRad)*maxOneMoveRotation*circumf/(2*np.pi)
+    numHeightPoints = abs(int(length//idealStepHeight))+1
+    heightStep = length/numHeightPoints
+    mainRotAngle = heightStep/(circumf*np.tan(helixAngleRad))*2*np.pi
     
     
     print('Main Angle:', mainRotAngle, 'Stepover Angle:', stepOverRotAngle)
@@ -224,6 +232,37 @@ def rotation_quat(axis, deg):
     quat[axis] = np.sin(fRad)
     return Quat(quat)
 
+def circleHeightReduction_gen(layerHeight, circleRad):    
+    for i in range(int(circleRad//layerHeight)):
+        x = circleRad-layerHeight*i
+        t = np.arccos(x/circleRad)
+        z = circleRad*np.sin(t)
+        yield z
+
+def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25):
+    numLayers = int(radialThickness//layerHeight)
+    # base grip - grip closest to platform
+    for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
+                                       range(numLayers)):
+        yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
+        yield from outsideCylinder(centerZ=startZbottom,
+                                   dia = startDia+layerNumber*layerHeight,
+                                   stepOver=0.6,
+                                   helixAngleDeg=90,
+                                   endZ = startZbottom + gripLength - zReduction,                                   
+                                   )
+        
+    # Top grip - grip farthest from platform
+    for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
+                                       range(numLayers)):
+        yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
+        yield from outsideCylinder(centerZ=startZtop + zReduction,
+                                   dia = startDia+layerNumber*layerHeight,
+                                   stepOver=0.6,
+                                   helixAngleDeg=90,
+                                   endZ = startZtop + gripLength,
+                                   )
+
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
     if angles is None:
@@ -232,14 +271,14 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
         list(angles)
     except Exception:
         angles = [angles]
-    angles = cycle(np.array(angles)/(360.0)*2*np.pi)
+    angles = cycle(np.array(angles))
     for layerNum, angle in zip(range(numLayers), angles):
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
                                     stepOver=0.6,
-                                    helixAngle = angle,
-                                    height=height,
+                                    helixAngleDeg = angle,
+                                    length=height,
                                     vel=vel)
     
 def writePoints(points):
