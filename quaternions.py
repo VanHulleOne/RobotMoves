@@ -176,7 +176,24 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
             + '\t\tSetDO DO5_Program_Feed, 0;\n')    
     yield moveJ((x+10*np.cos(angle),y+10*np.sin(angle),currHeight), quat, config-[0,0,int(angle/(np.pi/2)),0], vel)    
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
+
+def oneLayer(dia, startZ, endZ, helixAngle, *, stepOver=0.6, startAngleRad=0, endAngleRad=float('inf')):
+    if helixAngle < 0 and endAngleRad > startAngleRad:
+        # If helixAngle is negative then endAngleRad needs to be less than startAngleRad
+        startAngleRad, endAngleRad = endAngleRad, startAngleRad
+    length = endZ - startZ
+    circumf = np.pi * dia
+    longitudeDistance = length/np.tan(helixAngle)
+    angleIncrement = np.pi*2*longitudeDistance/circumf
     
+    
+    
+        
+    
+    
+    startQuat = Quat(0.6532815, -0.2705981, -0.6532815, 0.2705981).rotate_rad('z', startAngleRad)
+    endConfig
+   
 def mat2quat(m):
     q1 = np.sqrt(m[0,0] + m[1,1] + m[2,2] + 1)/2
     q2 = (np.sqrt(m[0,0] - m[1,1] - m[2,2] + 1)/2) * np.sign(m[2,1] - m[1,2])
