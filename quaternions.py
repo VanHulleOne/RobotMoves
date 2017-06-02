@@ -241,15 +241,15 @@ def circleHeightReduction_gen(layerHeight, circleRad):
 
 def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25):
     numLayers = int(radialThickness//layerHeight)
-    # base grib - grip closest to platform
+    # base grip - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
-                                       range(numLayers)):  
+                                       range(numLayers)):
         yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
                                    helixAngleDeg=90,
-                                   endZ = startZbottom + gripLength - zReduction
+                                   endZ = startZbottom + gripLength - zReduction,                                   
                                    )
         
     # Top grip - grip farthest from platform
@@ -260,7 +260,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
                                    helixAngleDeg=90,
-                                   endZ = startZtop + gripLength
+                                   endZ = startZtop + gripLength,
                                    )
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
