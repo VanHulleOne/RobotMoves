@@ -248,7 +248,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
-                                   helixAngleDeg=90,
+                                   helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
                                    )
         
@@ -259,7 +259,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield from outsideCylinder(centerZ=startZtop + zReduction,
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
-                                   helixAngleDeg=90,
+                                   helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
                                    )
 
