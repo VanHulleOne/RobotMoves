@@ -107,7 +107,7 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngleDeg=np.pi/4, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30):
     if endZ is None and length is None:
         raise Exception('Must enter length or endZ')
     if endZ is not None and length is not None:
