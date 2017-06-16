@@ -290,13 +290,19 @@ def writePoints(points):
         for line in points:
             f.write(line)
         f.write('\n\t\t! End Program codes\n' +
+                '\t\tALL_STOP;\n' +
+                '\tENDPROC\n\n'
+                )
+        f.write('\tPROC ALL_STOP()\n' +
                 '\t\tSetDO DO1_Auto_Mode, 0;\n' +
                 '\t\tSetDO DO5_Program_Feed, 0;\n' +
                 '\t\tSetDO DO3_Heat_Bed, 0;\n' +
                 '\t\tSetDO DO4_Heat_Nozzle, 0;\n' +
-                '\t\tSetDO DO6_Between_Layer_Retract, 0;\n'
+                '\t\tSetDO DO6_Between_Layer_Retract, 0;\n' +
+                '\tENDPROC\n'
                 )
-        f.write('\tENDPROC\nENDMODULE')
+        f.write('ENDMODULE'
+                )
        
         
         
