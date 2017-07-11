@@ -319,41 +319,47 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
 #    startQuat = Quat(0, 0, -1, 0)
 
     if baseLayers > 0:                                                         #If there are base layers, make them
-
-
-##########################################################################################################################################################
         
+        numCircles = math.floor(radius/nozzleWidth)
+        stepRadius = pathRadius                                                #stepRadius is used to track the tool poition in the following loop, and starts at the outermost tool position pathRadius
 
-        if baseLayers % 2 == 1:                                                #If odd number of base layers: make one layer, then use even sets   
-            numCircles = math.floor(radius/nozzleWidth)
-            stepRadius = pathRadius                                            #stepRadius is used to track the tool poition in the following loop, and starts at the outermost tool position pathRadius
+        #This block calculates the angluar change for one layer as theta total
+        for l in range(numCircles):
+            thetaStep = 2 * math.asin(nozzleWidth/(2*stepRadius))              #Finds the angular change per circle
+            thetaTotal += thetaStep                                            #Total angular change for one layer
 
-            #This block calculates the angluar change for one layer as theta total
-            for l in range(numCircles):
-                thetaStep = 2 * math.asin(nozzleWidth/(2*stepRadius))          #Finds the angular change per circle
-                thetaTotal += thetaStep                                        #Total angular change for one layer
+            stepRadius = stepRadius - nozzleWidth
 
-                stepRadius = stepRadius - nozzleWidth
 
-            thetaStart = np.pi - thetaTotal                                    #Helix start position is always at 180 degrees, so taking the final- travel gives starting posiiton
-            radiusCurrent = pathRadius - (nozzleWidth * (numCircles - 1))            #Starting from innermost circle
-
-            yield ('\t\tMoveL Offs(pZero, ' +                                  #Move to clearance plane
-            str(np.cos(thetaStart) * radiusCurrent) + ', ' +                      #X
-            str(np.sin(thetaStart) * radiusCurrent) + ', ' +                      #Y 
-            str(zHeight) +                                                     #Z
-            '), v100, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')         #velocity, zone, tool, and work object
+        if baseLayers % 2 == 1:                                                #If odd number of base layers start on inside  
+            thetaStart = np.pi - (thetaTotal * baseLayers)                     #Helix start position is always at 180 degrees, so taking the final- travel gives starting posiiton
+            radiusCurrent = pathRadius - (nozzleWidth * (numCircles - 1))      #Starting from innermost circle
+            oddLayers = True
             
-            zHeight -= 5                                                       #Z value for starting position
-            
-            yield ('\t\tMoveL Offs(pZero, ' +                                      #move to start position
-            str(np.cos(thetaStart) * radiusCurrent) + ', ' +                      #X
-            str(np.sin(thetaStart) * radiusCurrent) + ', ' +                      #Y
-            str(zHeight) +                                                     #Z
-            '), v30, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')          #velocity, zone, tool, and work object
-            
-            thetaCurrent = thetaStart
+        else:                                                                  #If even number of base layers, start on outside
+            thetaStart = np.pi - (thetaTotal * baseLayers)                     #Helix start position is always at 180 degrees, so taking the final- travel gives starting posiiton
+            radiusCurrent = pathRadius                                         #Starting from innermost circle
+            oddLayers = False
 
+        yield ('\t\tMoveL Offs(pZero, ' +                                      #Move to clearance plane
+        str(np.cos(thetaStart) * radiusCurrent) + ', ' +                       #X
+        str(np.sin(thetaStart) * radiusCurrent) + ', ' +                       #Y 
+        str(zHeight) +                                                         #Z
+        '), v100, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')             #velocity, zone, tool, and work object
+            
+        zHeight -= 5                                                           #Z value for starting position
+            
+        yield ('\t\tMoveL Offs(pZero, ' +                                      #move to start position
+        str(np.cos(thetaStart) * radiusCurrent) + ', ' +                       #X
+        str(np.sin(thetaStart) * radiusCurrent) + ', ' +                       #Y
+        str(zHeight) +                                                         #Z
+        '), v30, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')              #velocity, zone, tool, and work object
+            
+        thetaCurrent = thetaStart
+        layer = 0
+
+        for b in range(int(np.floor(baseLayers))):
+            layer += 1
             for h in range(numCircles):                                        #Layer 1
                 thetaStep = 2 * math.asin(nozzleWidth/(2*radiusCurrent))       #Finds the angular change per circle                
                 thetaTravel = (2 * np.pi) - thetaStep
@@ -384,7 +390,11 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     
                 
                 if h != (numCircles - 1):
-                    radiusCurrent += nozzleWidth                               #Increase radius by one nozzle width for next smallest circle
+                    if (layer % 2 == 0 and oddLayers == False) or (layer % 2 == 1 and oddLayers == True):    
+                        radiusCurrent += nozzleWidth                               #Increase radius by one nozzle width for next largest circle
+                    else: 
+                        radiusCurrent -= nozzleWidth                               #Decrease radius by one nozzle width for next smallest circle                    
+                    
                     yield ('\t\tMoveL Offs(pZero, ' + 
                     str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +         #X
                     str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +         #Y
@@ -393,238 +403,6 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
                     ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')        #Tool and work object
 
             zHeight += layerHeight
-
-            if baseLayers > 2:
-                for b in range(np.floor(baseLayers/2)):                        #Make pairs of base layers
-                    thetaCurrent = np.pi - (2 * thetaTotal)                    #Helix start position is always at 180 degrees, so taking the final- travel gives starting posiiton
-                    for l in range(numCircles):                                #Layer 2, 4, 6...
-                        thetaStep = 2*math.asin(nozzleWidth/(2*radiusCurrent)) #Finds the angular change per circle                
-                        thetaTravel = (2 * np.pi) - thetaStep
-                
-                        #next two yields are the moveC command, split to update thetaCurrent
-                        yield ('\t\tMoveC Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #X
-                        str(np.sin(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                        str(zHeight) + '), ' +                                     #Z
-                        'Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #X
-                        str(np.sin(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #Y
-                        str(zHeight) +                                             #Z
-                        '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                        yield ('\t\tMoveC Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #X
-                        str(np.sin(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                        str(zHeight) + '), ' +                                     #Z
-                        'Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #X
-                        str(np.sin(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #Y
-                        str(zHeight) +                                             #Z
-                        '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                        thetaCurrent = thetaCurrent + thetaStep                    #Move theta current to find end theta, and strting theta for next circle 
-                    
-                    
-                        if l != (numCircles - 1):                                    #dont do the moveL if this is the last circle
-                            radiusCurrent -= nozzleWidth                       #Reduce radius by one nozzle width for next smallest circle
- 
-                            yield ('\t\tMoveL Offs(pZero, ' + 
-                            str(np.cos(thetaCurrent) * radiusCurrent) + ', ' + #X
-                            str(np.sin(thetaCurrent) * radiusCurrent) + ', ' + #Y
-                            str(zHeight) +                                     #Z
-                            '), v' + str(int(vel)) +                                #velcoity 
-                            ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')#Tool and work object
-                
-                    zHeight += layerHeight
-            
-                    yield ('\t\tMoveL Offs(pZero, ' +                              #Move up one layer
-                    str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +         #X
-                    str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +         #Y
-                    str(zHeight) +                                             #Z
-                    '), v' + str(int(vel)) +                                        #velcoity 
-                    ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')        #Tool and work object
-            
-                    for k in range(numCircles):                                #Layer 3, 5, 7...
-                        thetaStep = 2*math.asin(nozzleWidth/(2*radiusCurrent)) #Finds the angular change per circle                
-                        thetaTravel = (2 * np.pi) - thetaStep
-                
-                        #next two yields are the moveC command, split to update thetaCurrent
-                        yield ('\t\tMoveC Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #X
-                        str(np.sin(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                        str(zHeight) + '), ' +                                     #Z
-                        'Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #X
-                        str(np.sin(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #Y
-                        str(zHeight) +                                             #Z
-                        '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                        yield ('\t\tMoveC Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #X
-                        str(np.sin(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                        str(zHeight) + '), ' +                                     #Z
-                        'Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #X
-                        str(np.sin(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #Y
-                        str(zHeight) +                                             #Z
-                        '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-
-                        thetaCurrent = thetaCurrent + thetaStep                    #Move theta current to find end theta, and strting theta for next circle 
-                                
-                        if k != (numCircles - 1):
-                            radiusCurrent += nozzleWidth                       #Increase radius by one nozzle width for next smallest circle
-                            yield ('\t\tMoveL Offs(pZero, ' + 
-                            str(np.cos(thetaCurrent) * radiusCurrent) + ', ' + #X
-                            str(np.sin(thetaCurrent) * radiusCurrent) + ', ' + #Y
-                            str(zHeight) +                                     #Z
-                            '), v' + str(int(vel)) +                                #velcoity 
-                            ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')#Tool and work object
-            
-                    zHeight += layerHeight
-                    
-                yield ('\t\tMoveL Offs(pZero, ' +                                  #Move up one layer
-                str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +             #X
-                str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +             #Y
-                str(zHeight) +                                                 #Z
-                '), v' + str(int(vel)) +                                            #velcoity 
-                ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')            #Tool and work object
-
-        
-        
-########################################################################################################################################################       
-        
-        if baseLayers % 2 == 0:                                                #If even number of base layers: use even sets   
-            numCircles = math.floor(radius/nozzleWidth)
-            stepRadius = pathRadius                                            #stepRadius is used to track the tool poition in the following loop, and starts at the outermost tool position pathRadius
-        
-            #This block calculates the angluar change for one layer as theta total
-            for l in range(numCircles):
-
-                
-                thetaStep = 2 * math.asin(nozzleWidth/(2*stepRadius))          #Finds the angular change per circle
-                thetaTotal += thetaStep                                        #Total angular change for one layer
-                
-                stepRadius = stepRadius - nozzleWidth
-
-            thetaStart = np.pi - (2 * thetaTotal)                              #Helix start position is always at 180 degrees, so taking the final- travel gives starting posiiton
-
-            yield ('\t\tMoveL Offs(pZero, ' +                                      #Move to clearance plane
-            str(np.cos(thetaStart) * pathRadius) + ', ' +                      #X
-            str(np.sin(thetaStart) * pathRadius) + ', ' +                      #Y 
-            str(zHeight) +                                                     #Z
-            '), v100, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')         #velocity, zone, tool, and work object
-            
-            zHeight -= 5                                                       #Z value for starting position
-            
-            yield ('\t\tMoveL Offs(pZero, ' +                                      #move to start position
-            str(np.cos(thetaStart) * pathRadius) + ', ' +                      #X
-            str(np.sin(thetaStart) * pathRadius) + ', ' +                      #Y
-            str(zHeight) +                                                     #Z
-            '), v' + str(int(vel)) +                                                #velocity
-            ' , z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')               #zone, tool, and work object
-            
-            thetaCurrent = thetaStart
-            radiusCurrent = pathRadius
-
-            for n in range(np.int(baseLayers/2)):                                      #Make pairs of layers
-            
-                for l in range(numCircles):                                    #Layer 1, 3, 5...
-                    thetaStep = 2 * math.asin(nozzleWidth/(2*radiusCurrent))   #Finds the angular change per circle  
-                    thetaTravel = (2 * np.pi) - thetaStep
-                
-                    #next two yields are the moveC command, split to update thetaCurrent
-                    yield ('\t\tMoveC Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #X
-                    str(np.sin(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                    str(zHeight) + '), ' +                                     #Z
-                    'Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #X
-                    str(np.sin(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #Y
-                    str(zHeight) +                                             #Z
-                    '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                    yield ('\t\tMoveC Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #X
-                    str(np.sin(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                    str(zHeight) + '), ' +                                     #Z
-                    'Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #X
-                    str(np.sin(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #Y
-                    str(zHeight) +                                             #Z
-                    '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-
-                    thetaCurrent = thetaCurrent + thetaStep                    #Move theta current to find end theta, and strting theta for next circle 
-                                 
-                                
-                    if l != (numCircles - 1):                                        #dont do the moveL if this is the last circle
-                        radiusCurrent -= nozzleWidth                           #Reduce radius by one nozzle width for next smallest circle
- 
-                        yield ('\t\tMoveL Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +     #X
-                        str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +     #Y
-                        str(zHeight) +                                         #Z
-                        '), v' + str(int(vel)) +                                    #velcoity 
-                        ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')    #Tool and work object
-                
-                zHeight += layerHeight
-            
-                yield ('\t\tMoveL Offs(pZero, ' +                                  #Move up one layer
-                str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +             #X
-                str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +             #Y
-                str(zHeight) +                                                 #Z
-                '), v' + str(int(vel)) +                                            #velcoity 
-                ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')            #Tool and work object
-            
-                for k in range(numCircles):                                    #Layer 2, 4, 6...
-                    thetaStep = 2 * math.asin(nozzleWidth/(2*radiusCurrent))   #Finds the angular change per circle                
-                    thetaTravel = (2 * np.pi) - thetaStep
-                
-                    #next two yields are the moveC command, split to update thetaCurrent
-                    yield ('\t\tMoveC Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #X
-                    str(np.sin(thetaCurrent - .25 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                    str(zHeight) + '), ' +                                     #Z
-                    'Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #X
-                    str(np.sin(thetaCurrent - .5 * thetaTravel) * radiusCurrent) + ', ' +         #Y
-                    str(zHeight) +                                             #Z
-                    '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                    yield ('\t\tMoveC Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #X
-                    str(np.sin(thetaCurrent - .75 * thetaTravel) * radiusCurrent) + ', ' + #Y
-                    str(zHeight) + '), ' +                                     #Z
-                    'Offs(pZero, ' + 
-                    str(np.cos(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #X
-                    str(np.sin(thetaCurrent - thetaTravel) * radiusCurrent) + ', ' +         #Y
-                    str(zHeight) +                                             #Z
-                    '), v' + str(int(vel)) + ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')                #Speed, zone, and tool
-
-                    thetaCurrent = thetaCurrent + thetaStep                    #Move theta current to find end theta, and strting theta for next circle 
-    
-                            
-                    if k != (numCircles - 1):
-                        radiusCurrent += nozzleWidth                           #Increase radius by one nozzle width for next smallest circle
-                        yield ('\t\tMoveL Offs(pZero, ' + 
-                        str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +     #X
-                        str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +     #Y
-                        str(zHeight) +                                         #Z
-                        '), v' + str(int(vel)) +                                    #velcoity 
-                        ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')    #Tool and work object
-                        
-                zHeight += layerHeight
-                
-                yield ('\t\tMoveL Offs(pZero, ' +                                  #Move up one layer
-                str(np.cos(thetaCurrent) * radiusCurrent) + ', ' +             #X
-                str(np.sin(thetaCurrent) * radiusCurrent) + ', ' +             #Y
-                str(zHeight) +                                                 #Z
-                '), v' + str(int(vel)) +                                            #velcoity 
-                ', z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')            #Tool and work object
-
-#############################################################################################################################
-
 
     if(baseLayers) == 0:
         thetaStart = np.pi
@@ -652,7 +430,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
         startingAngle = 180
         startingAngleRad = (startingAngle/360) * 2 * np.pi
         
-        yield ('zHeight = ' + str(zHeight))
+        yield ('\t\tzHeight := ' + str(zHeight) + ';\n')
     
         yield ('\t\tFOR i FROM 1 TO ' + str(numLayers) + ' DO \n'+
         '\t\t\tTPWRITE "Layer " \\' + 'NUM:=i;\n')
