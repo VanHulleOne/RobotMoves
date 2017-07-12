@@ -313,10 +313,6 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     
     thetaStep = 0
     thetaTotal = 0
-    
-#    Not sure if these are needed       
-#    config = np.array([-1,1,1,1])
-#    startQuat = Quat(0, 0, -1, 0)
 
     if baseLayers > 0:                                                         #If there are base layers, make them
         
@@ -354,7 +350,13 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
         str(np.sin(thetaStart) * radiusCurrent) + ', ' +                       #Y
         str(zHeight) +                                                         #Z
         '), v30, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')              #velocity, zone, tool, and work object
-            
+        
+                               
+        yield('\t\tWaitRob \InPos;\n')
+        yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')                           
+                               
+                               
         thetaCurrent = thetaStart
         layer = 0
 
@@ -420,8 +422,12 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
         str(zHeight) +                                                         #Z
         '), v' + str(int(vel)) + ' , z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')    #velocity, zone, tool, and work object
  
+        yield('\t\tWaitRob \InPos;\n')
+        yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
 
     numLayers = np.round((height/layerHeight) - baseLayers)
+    zHeight -= layerHeight
     
     if numLayers > 0:
         angleIncrement = 360/(2*stepsPerRev)                                       #steps times 2 because with n arcs there are 2n points used to define it
