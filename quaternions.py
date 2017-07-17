@@ -151,6 +151,15 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
     angle = 0
     currHeight = centerZ
     
+    feedRateWaitTime = (vel+.5)/5.6154
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+    yield('\t\tWaitTime .1;\n')
+    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
+    
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     yield moveJ((rad,0,currHeight), startQuat, config, vel)
     yield ('\t\tWaitRob \InPos;\n' +
@@ -240,8 +249,18 @@ def circleHeightReduction_gen(layerHeight, circleRad):
         z = circleRad*np.sin(t)
         yield z
 
-def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25):
+def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25, vel = 30):
     numLayers = int(radialThickness//layerHeight)
+    
+    feedRateWaitTime = (vel+.5)/5.6154
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+    yield('\t\tWaitTime .1;\n')
+    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
+    
     # base grip - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
                                        range(numLayers)):
@@ -262,10 +281,19 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    stepOver=0.6,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
+                                   vel = vel
                                    )
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
+    feedRateWaitTime = (vel+.5)/5.6154
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+    yield('\t\tWaitTime .1;\n')
+    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
     if angles is None:
         angles = [45]
     try:
@@ -313,6 +341,15 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     
     thetaStep = 0
     thetaTotal = 0
+    
+    feedRateWaitTime = (vel+.5)/5.6154
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+    yield('\t\tWaitTime .1;\n')
+    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
 
     if baseLayers > 0:                                                         #If there are base layers, make them
         
@@ -484,7 +521,7 @@ def writePoints(points):
         f.write('\tPROC main()\n')
         f.write('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
         f.write('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
-        f.write('\t\tSetDO DO1_Auto_Mode, 1;\n')
+
         for line in points:
             f.write(line)
         f.write('\n\t\t! End Program codes\n' +
