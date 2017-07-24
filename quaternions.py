@@ -91,8 +91,8 @@ class Quat:
         return 'Quat(' + ', '.join('{:0.7g}'.format(i) for i in self) + ')'
 
 def move(type_, point, quat, config, speed):
-    tool = 'tNozzle'
-    workObj = 'wobjFlatPlat'
+    tool = 'tNozzleAlCal'
+    workObj = 'wobjAlWithButton'
 
     return ('\t\t' + type_ + ' [[' +
             ', '.join(['{:0.3f}'.format(i) for i in point]) + '], ' + # X, Y, Z
@@ -108,7 +108,8 @@ def moveL(point, quat, config, speed):
 def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
-def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30):
+def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
+                    endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30, setFeedRate = False):
     if endZ is None and length is None:
         raise Exception('Must enter length or endZ')
     if endZ is not None and length is not None:
@@ -151,13 +152,15 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
     angle = 0
     currHeight = centerZ
     
-    feedRateWaitTime = (vel+.5)/5.6154
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
-    yield('\t\tWaitTime .1;\n')
-    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
-    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    if (setFeedRate == True):
+        feedRateWaitTime = ((vel*(25/30))+.5)/5.6154                           #25/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+        yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+        yield('\t\tWaitTime .1;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+        yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+        yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
+    
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
     
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
@@ -252,48 +255,36 @@ def circleHeightReduction_gen(layerHeight, circleRad):
 def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25, vel = 30):
     numLayers = int(radialThickness//layerHeight)
     
-    feedRateWaitTime = (vel+.5)/5.6154
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
-    yield('\t\tWaitTime .1;\n')
-    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
-    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
-    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
-    
     # base grip - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
                                        range(numLayers)):
+        firstLayerTrue = (layerNumber == 0)
         yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
-                                   )
+                                   vel=vel,
+                                   setFeedRate = firstLayerTrue)
         
     # Top grip - grip farthest from platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
                                        range(numLayers)):
+        firstLayerTrue = (layerNumber == 0)
+        print(firstLayerTrue)
         yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZtop + zReduction,
                                    dia = startDia+layerNumber*layerHeight*2,
                                    stepOver=0.6,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
-                                   vel = vel
-                                   )
+                                   vel=vel,
+                                   setFeedRate = firstLayerTrue)
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
-    feedRateWaitTime = (vel+.5)/5.6154
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
-    yield('\t\tWaitTime .1;\n')
-    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
-    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
-    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
+    
     if angles is None:
         angles = [45]
     try:
@@ -302,15 +293,17 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
         angles = [angles]
     angles = cycle(np.array(angles))
     for layerNum, angle in zip(range(numLayers), angles):
+        firstLayerTrue = (layerNum == 0)
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
                                     stepOver=0.6,
                                     helixAngleDeg = angle,
                                     length=height,
-                                    vel=vel)
+                                    vel=vel,
+                                    setFeedRate = firstLayerTrue)
     
-    
+ 
 def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2, 
     vel = 10.0, baseLayers = 2.0, centerX = 0.0, centerY = 0.0, centerZ = 0.0):
     
@@ -342,7 +335,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     thetaStep = 0
     thetaTotal = 0
     
-    feedRateWaitTime = (vel+.5)/5.6154
+    feedRateWaitTime = ((vel*(25/30))+.5)/5.6154                           #25/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n')
     yield('\t\tSetDO DO5_Program_Feed, 1;\n')
@@ -508,8 +501,52 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     yield '\t\tzHeight:= zHeight + 3;\n'
     yield ('\t\tMoveL Offs(pZero, 0, 0, zHeight), v' + str(int(vel)) + 
            ' , z0, tNozzleCorrected, \Wobj := wobjAlWithButton;\n')
-
+    yield('\t\tSetDO DO1_Auto_Mode, 0;\n')
     
+def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0, 
+            helixLayerHeight = .2, helixVel = 10.0, helixBaseLayers = 2.0, 
+            helixCenterX = 0.0, helixCenterY = 0.0, helixCenterZ = 0.0, 
+            
+            multiLayerAngles = None, multiLayerCenterX = 0, multiLayerCenterY = 0,
+            multiLayerCenterZ = 10, multiLayerInitialDia = 15.5, multiLayerHeight = 60,
+            multiLayerLayerHeight = .2, multiLayerVel = 30, multiLayerNumLayers = 1,
+            
+            gripsStartZbottom = 10, gripsStartZtop = 70, gripsStartDia = 17, 
+            gripsGripLength = 25, gripsLayerHeight = 0.2, gripsRadialThickness=5, 
+            gripsFilletRadius = 25, gripsVel = 30):
+    
+    
+    yield from helix(diameter = helixDiameter, stepsPerRev = helixStepsPerRev, 
+                     height = helixHeight, layerHeight = helixLayerHeight, 
+                     vel = helixVel, baseLayers = helixBaseLayers, 
+                     centerX = helixCenterX, centerY = helixCenterY, 
+                     centerZ = helixCenterZ)
+#Check for a completed core
+    yield ('\n\t\tMoveL Offs(pZero, 123.41, 2.99, 100), v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield ('\t\tMoveL pSwitch1, v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield ('\t\tWaitDI D652_10_DI9, 0;\n')
+    yield ('\t\tMoveL Offs(pZero, 123.41, 2.99, 100), v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield('\t\tMoveAbsJ [[-76.69,32.26,-3.32,90,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
+    
+    yield from multiLayer(angles = multiLayerAngles, centerX=multiLayerCenterX,
+                          centerY = multiLayerCenterY, centerZ = multiLayerCenterZ,
+                          initialDia = multiLayerInitialDia, height = multiLayerHeight,
+                          layerHeight = multiLayerLayerHeight, vel = multiLayerVel,
+                          numLayers = multiLayerNumLayers)
+#check that core is still in place and that layers are as they should be
+    yield('\n\t\tMoveAbsJ [[-76.69,32.26,-3.32,90,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
+    yield('\t\tMoveAbsJ [[-76.69,32.26,-3.32,0,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
+    yield ('\t\tMoveL Offs(pZero, 123.41, 2.99, 100), v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield ('\t\tMoveL pSwitch1, v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield ('\t\tWaitDI D652_10_DI9, 0;\n')
+    yield ('\t\tMoveL Offs(pZero, 123.41, 2.99, 100), v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
+    yield('\t\tMoveAbsJ [[-76.69,32.26,-3.32,90,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
+    
+    yield from grips(startZbottom = gripsStartZbottom, startZtop = gripsStartZtop, 
+                     startDia = gripsStartDia, gripLength = gripsGripLength, 
+                     layerHeight = gripsLayerHeight, radialThickness = gripsRadialThickness,
+                     filletRadius = gripsFilletRadius, vel = gripsVel)
+#finally chack for grips and removal?
         
         
         
