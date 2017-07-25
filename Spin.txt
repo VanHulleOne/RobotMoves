@@ -1,0 +1,8 @@
+MODULE MainModule
+	CONST jointtarget jpos10:=[[-93.0391,30.3449,-0.600022,-0.115494,-119.512,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+	CONST jointtarget jpos20:=[[-93.0391,30.3449,-0.600022,-0.115494,-119.512,1000],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+	PROC main()
+        MoveAbsJ jpos10, v200, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;
+        MoveAbsJ jpos20, v200, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;
+	ENDPROC
+ENDMODULE

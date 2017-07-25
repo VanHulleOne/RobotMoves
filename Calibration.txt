@@ -1,0 +1,21 @@
+MODULE MainModule
+
+	PROC main()
+
+
+		SetDO DO1_Auto_Mode, 1;
+		MoveL Offs(pZero, 2.4560193681, -2.12848980817, 5.2), v100, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;
+		MoveJ [[17.950, 0.000, -5.000], [0.6532815, -0.2705981, -0.6532815, 0.2705981], [-1, 1, 1, 1], [9E+09, 9E+09, 9E+09, 9E+09, 9E+09, 9E+09]], v30, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;
+
+		! End Program codes
+		ALL_STOP;
+	ENDPROC
+
+	PROC ALL_STOP()
+		SetDO DO1_Auto_Mode, 0;
+		SetDO DO5_Program_Feed, 0;
+		SetDO DO3_Heat_Bed, 0;
+		SetDO DO4_Heat_Nozzle, 0;
+		SetDO DO6_Between_Layer_Retract, 0;
+	ENDPROC
+ENDMODULE
