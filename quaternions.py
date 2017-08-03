@@ -153,7 +153,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     currHeight = centerZ
     
     if (setFeedRate == True):
-        feedRateWaitTime = ((vel*(25/30))+.5)/5.6154                           #25/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+        feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                           #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
         yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
         yield('\t\tWaitTime .1;\n')
         yield('\t\tSetDO DO5_Program_Feed, 1;\n')
@@ -335,7 +335,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     thetaStep = 0
     thetaTotal = 0
     
-    feedRateWaitTime = ((vel*(25/30))+.5)/5.6154                           #25/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+    feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                           #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n')
     yield('\t\tSetDO DO5_Program_Feed, 1;\n')
@@ -486,7 +486,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
                  
             'v' + str(int(vel)) +', ' + 
             'z0, ' +
-            'tNozzleCorrected, ' + 
+            'tNozzleAlCal, ' + 
             '\Wobj := wobjAlWithButton;\n')
         
             zHeight += (layerHeight/stepsPerRev)
@@ -500,7 +500,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     yield '\t\tSetDO DO6_Between_Layer_Retract, 1;\n'
     yield '\t\tzHeight:= zHeight + 3;\n'
     yield ('\t\tMoveL Offs(pZero, 0, 0, zHeight), v' + str(int(vel)) + 
-           ' , z0, tNozzleCorrected, \Wobj := wobjAlWithButton;\n')
+           ' , z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
     yield('\t\tSetDO DO1_Auto_Mode, 0;\n')
     
 def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0, 
