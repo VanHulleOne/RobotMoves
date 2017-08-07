@@ -153,7 +153,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     currHeight = centerZ
     
     if (setFeedRate == True):
-        feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                           #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+        feedRateWaitTime = ((vel*(28.648/30))+.5)/5.6154                           #28.648/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
         yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
         yield('\t\tWaitTime .1;\n')
         yield('\t\tSetDO DO5_Program_Feed, 1;\n')
@@ -262,7 +262,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight*2,
-                                   stepOver=0.6,
+                                   stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
                                    vel=vel,
@@ -276,7 +276,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZtop + zReduction,
                                    dia = startDia+layerNumber*layerHeight*2,
-                                   stepOver=0.6,
+                                   stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
                                    vel=vel,
@@ -297,7 +297,7 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
-                                    stepOver=0.6,
+                                    stepOver=0.5,
                                     helixAngleDeg = angle,
                                     length=height,
                                     vel=vel,
@@ -335,7 +335,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     thetaStep = 0
     thetaTotal = 0
     
-    feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                           #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+    feedRateWaitTime = ((vel*(28.648/30))+.5)/5.6154                           #28.648/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n')
     yield('\t\tSetDO DO5_Program_Feed, 1;\n')
