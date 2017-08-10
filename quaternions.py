@@ -263,7 +263,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         firstLayerTrue = (layerNumber == 0)
         yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZbottom,
-                                   dia = startDia+layerNumber*layerHeight*2,
+                                   dia = startDia+(layerNumber+1)*layerHeight*2,
                                    stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
@@ -277,7 +277,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         print(firstLayerTrue)
         yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZtop + zReduction,
-                                   dia = startDia+layerNumber*layerHeight*2,
+                                   dia = startDia+(layerNumber+1)*layerHeight*2,
                                    stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
