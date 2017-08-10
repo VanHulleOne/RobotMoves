@@ -255,6 +255,8 @@ def circleHeightReduction_gen(layerHeight, circleRad):
 def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25, vel = 30):
     numLayers = int(radialThickness//layerHeight)
     
+    yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+    yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
     # base grip - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
                                        range(numLayers)):
@@ -262,7 +264,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield '\n\t\t! Base Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZbottom,
                                    dia = startDia+layerNumber*layerHeight*2,
-                                   stepOver=0.6,
+                                   stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
                                    vel=vel,
@@ -276,7 +278,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
         yield '\n\t\t! Top Grip layer number ' + str(layerNumber + 1) + ' of ' + str(numLayers+1) + '\n'
         yield from outsideCylinder(centerZ=startZtop + zReduction,
                                    dia = startDia+layerNumber*layerHeight*2,
-                                   stepOver=0.6,
+                                   stepOver=0.5,
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
                                    vel=vel,
@@ -284,6 +286,9 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
+    
+    yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+    yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
     
     if angles is None:
         angles = [45]
@@ -297,7 +302,7 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
         yield '\n\n\t\t!Layer number ' + str(layerNum+1) + ' of ' + str(numLayers) + '\n'
         yield from outsideCylinder(centerX=centerX, centerY=centerY, centerZ=centerZ,
                                    dia = initialDia + 2*layerHeight*(layerNum+1),
-                                    stepOver=0.6,
+                                    stepOver=0.5,
                                     helixAngleDeg = angle,
                                     length=height,
                                     vel=vel,
@@ -343,6 +348,9 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     yield('\t\tSetDO DO5_Program_Feed, 0;\n')
     yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
+    
+    yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+    yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
 
     if baseLayers > 0:                                                         #If there are base layers, make them
         
@@ -546,9 +554,41 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
                      startDia = gripsStartDia, gripLength = gripsGripLength, 
                      layerHeight = gripsLayerHeight, radialThickness = gripsRadialThickness,
                      filletRadius = gripsFilletRadius, vel = gripsVel)
-#finally chack for grips and removal?
+#finally check for grips and removal?
+
+def setTemp(bedTemp = 0, nozzleTemp = 220, setBedTemp = False, setNozzleTemp = False):
+    if bedTemp < 0:
+        raise Exception('Temperature cannot be negative')
+    if nozzleTemp < 140:
+        raise Exception('Nozzle Temp cant be less than 140 C')
+
+    nozzleTempWaitTime = ((nozzleTemp - 140)/8)/5.6154
+    bedTempWaitTime = (bedTemp/5)/5.6154
+
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
+    yield('\t\tWaitTime .1;\n\n')    
         
+    if setBedTemp:
+        yield('\t\tSetDO DO8_Triple_Retract, 1;\n')
+    if setNozzleTemp:
+        yield('\t\tSetDO DO2_Man_Extrude, 1;\n')
+
+    yield('\t\tWaitTime .1;\n\n')        
+    
+    if setBedTemp:
+        yield('\t\tSetDO DO8_Triple_Retract, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+        yield('\t\tWaitTime ' + str(bedTempWaitTime) + ';\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+
+    if setNozzleTemp:
+        yield('\t\tSetDO DO2_Man_Extrude, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+        yield('\t\tWaitTime ' + str(nozzleTempWaitTime) + ';\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n')
         
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n')    
+
         
 def writePoints(points):
     points = list(points)
@@ -556,8 +596,6 @@ def writePoints(points):
         f.write('MODULE MainModule\n')
         f.write('\tVAR num zHeight;\n\n')
         f.write('\tPROC main()\n')
-        f.write('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
-        f.write('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
 
         for line in points:
             f.write(line)
