@@ -110,7 +110,7 @@ def moveJ(point, quat, config, speed):
 
 def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
                     endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30, 
-                    callFeedRate = False):
+                    nozzleTemp = None, bedTemp = None, firstLayerTrue = False):
     if endZ is None and length is None:
         raise Exception('Must enter length or endZ')
     if endZ is not None and length is not None:
@@ -152,11 +152,27 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     print('Bead Overlap:', beadOverlap)
     angle = 0
     currHeight = centerZ
+
+    setBedTemp = False
+    setNozzleTemp = False
     
-    if (callFeedRate == True):
+    if (firstLayerTrue == True):
+    
         yield from setFeedRate(vel = vel)
     
-    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
+        if bedTemp != None:
+            setBedTemp = True
+        if nozzleTemp != None:
+            setNozzleTemp = True
+    
+        if setBedTemp or setNozzleTemp == True:
+            yield from setTemp(bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
+                           setBedTemp = setBedTemp, setNozzleTemp = setNozzleTemp)
+    
+        yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
+        yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n\n')
+    
+        yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
     
     yield moveJ((rad+10,0,currHeight), startQuat, config, vel)
     yield moveJ((rad,0,currHeight), startQuat, config, vel)
@@ -247,11 +263,11 @@ def circleHeightReduction_gen(layerHeight, circleRad):
         z = circleRad*np.sin(t)
         yield z
 
-def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, radialThickness=5, filletRadius=25, vel = 30):
-    numLayers = int(radialThickness//layerHeight)
+def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, 
+          radialThickness=5, filletRadius=25, vel = 30, bedTemp = None, nozzleTemp = None):
     
-    yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
-    yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
+    numLayers = int(radialThickness//layerHeight)
+
     # base grip - grip closest to platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
                                        range(numLayers)):
@@ -263,7 +279,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
                                    vel=vel,
-                                   callFeedRate = firstLayerTrue)
+                                   firstLayerTrue = firstLayerTrue)
         
     # Top grip - grip farthest from platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
@@ -277,13 +293,13 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
                                    vel=vel,
-                                   callFeedRate = firstLayerTrue)
+                                   firstLayerTrue = firstLayerTrue,
+                                   bedTemp = bedTemp,
+                                   nozzleTemp = nozzleTemp)
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
-               initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
-    
-    yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
-    yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n')
+               initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1, 
+               bedTemp = None, nozzleTemp = None):
     
     if angles is None:
         angles = [45]
@@ -301,11 +317,14 @@ def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                                     helixAngleDeg = angle,
                                     length=height,
                                     vel=vel,
-                                    setFeedRate = firstLayerTrue)
+                                    firstLayerTrue = firstLayerTrue,
+                                    bedTemp = bedTemp,
+                                    nozzleTemp = nozzleTemp)
     
  
 def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2, 
-    vel = 10.0, baseLayers = 2.0, centerX = 0.0, centerY = 0.0, centerZ = 0.0):
+    vel = 10.0, baseLayers = 2.0, centerX = 0.0, centerY = 0.0, centerZ = 0.0, 
+    bedTemp = None, nozzleTemp = None):
     
     if diameter < 5:
         raise Exception('Diameter must be >=5')
@@ -333,9 +352,22 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     zHeight = centerZ + 5 + layerHeight                                        #+5 for clearance plane
     
     thetaStep = 0
-    thetaTotal = 0
+    thetaTotal = 0    
     
     yield from setFeedRate(vel = vel)
+
+    setBedTemp = False
+    setNozzleTemp = False
+    
+    if bedTemp != None:
+        setBedTemp = True
+    if nozzleTemp != None:
+        setNozzleTemp = True
+    
+    if setBedTemp or setNozzleTemp == True:
+        yield from setTemp(bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
+                           setBedTemp = setBedTemp, setNozzleTemp = setNozzleTemp)
+
     
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
     
@@ -504,21 +536,25 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
 def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0, 
             helixLayerHeight = .2, helixVel = 10.0, helixBaseLayers = 2.0, 
             helixCenterX = 0.0, helixCenterY = 0.0, helixCenterZ = 0.0, 
+            helixBedTemp = None, helixNozzleTemp = None,
             
             multiLayerAngles = None, multiLayerCenterX = 0, multiLayerCenterY = 0,
             multiLayerCenterZ = 10, multiLayerInitialDia = 15.5, multiLayerHeight = 60,
             multiLayerLayerHeight = .2, multiLayerVel = 30, multiLayerNumLayers = 1,
+            multiLayerBedTemp =  None, multiLayerNozzleTemp = None,
             
             gripsStartZbottom = 10, gripsStartZtop = 70, gripsStartDia = 17, 
             gripsGripLength = 25, gripsLayerHeight = 0.2, gripsRadialThickness=5, 
-            gripsFilletRadius = 25, gripsVel = 30):
+            gripsFilletRadius = 25, gripsVel = 30, gripsBedTemp = None, 
+            gripsNozzleTemp = None):
     
     
     yield from helix(diameter = helixDiameter, stepsPerRev = helixStepsPerRev, 
                      height = helixHeight, layerHeight = helixLayerHeight, 
                      vel = helixVel, baseLayers = helixBaseLayers, 
                      centerX = helixCenterX, centerY = helixCenterY, 
-                     centerZ = helixCenterZ)
+                     centerZ = helixCenterZ, bedTemp = helixBedTemp, 
+                     nozzleTemp = helixNozzleTemp)
 #Check for a completed core
     yield ('\n\t\tMoveL Offs(pZero, 123.41, 2.99, 100), v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
     yield ('\t\tMoveL pSwitch1, v60, z0, tNozzleAlCal, \Wobj := wobjAlWithButton;\n')
@@ -530,7 +566,8 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
                           centerY = multiLayerCenterY, centerZ = multiLayerCenterZ,
                           initialDia = multiLayerInitialDia, height = multiLayerHeight,
                           layerHeight = multiLayerLayerHeight, vel = multiLayerVel,
-                          numLayers = multiLayerNumLayers)
+                          numLayers = multiLayerNumLayers, bedTemp = multiLayerBedTemp,
+                          nozzleTemp = multiLayerNozzleTemp)
 #check that core is still in place and that layers are as they should be
     yield('\n\t\tMoveAbsJ [[-76.69,32.26,-3.32,90,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
     yield('\t\tMoveAbsJ [[-76.69,32.26,-3.32,0,-118.95,-13.31],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]], v60, z0, tNozzleAlCal, \WObj:=wobjAlWithButton;\n')
@@ -543,7 +580,8 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
     yield from grips(startZbottom = gripsStartZbottom, startZtop = gripsStartZtop, 
                      startDia = gripsStartDia, gripLength = gripsGripLength, 
                      layerHeight = gripsLayerHeight, radialThickness = gripsRadialThickness,
-                     filletRadius = gripsFilletRadius, vel = gripsVel)
+                     filletRadius = gripsFilletRadius, vel = gripsVel, 
+                     bedTemp = gripsBedTemp, nozzleTemp = gripsNozzleTemp)
 #finally check for grips and removal?
 
 def setTemp(bedTemp = 0, nozzleTemp = 220, setBedTemp = False, setNozzleTemp = False):
