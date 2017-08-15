@@ -109,7 +109,8 @@ def moveJ(point, quat, config, speed):
     return move(MOVEJ, point, quat, config, speed)
 
 def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None, 
-                    endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30, setFeedRate = False):
+                    endZ=None, stepOver=NOZ_DIA, helixAngleDeg=45, vel=30, 
+                    callFeedRate = False):
     if endZ is None and length is None:
         raise Exception('Must enter length or endZ')
     if endZ is not None and length is not None:
@@ -152,7 +153,7 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     angle = 0
     currHeight = centerZ
     
-    if (setFeedRate == True):
+    if (callFeedRate == True):
         yield from setFeedRate(vel = vel)
     
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
@@ -262,7 +263,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZbottom + gripLength - zReduction,                                   
                                    vel=vel,
-                                   setFeedRate = firstLayerTrue)
+                                   callFeedRate = firstLayerTrue)
         
     # Top grip - grip farthest from platform
     for zReduction, layerNumber in zip(circleHeightReduction_gen(layerHeight, filletRadius),
@@ -276,7 +277,7 @@ def grips(startZbottom, startZtop, startDia, gripLength=25, layerHeight=0.2, rad
                                    helixAngleDeg = 45 if layerNumber % 2 else -45,
                                    endZ = startZtop + gripLength,
                                    vel=vel,
-                                   setFeedRate = firstLayerTrue)
+                                   callFeedRate = firstLayerTrue)
 
 def multiLayer(*, angles = None, centerX=0, centerY=0, centerZ=10,
                initialDia=15.5, height=60, layerHeight = 0.2, vel=30, numLayers=1):
