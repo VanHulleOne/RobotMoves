@@ -547,11 +547,11 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
 
 def setTemp(bedTemp = 0, nozzleTemp = 220, setBedTemp = False, setNozzleTemp = False):
     if bedTemp < 0:
-        raise Exception('Temperature cannot be negative')
+        raise Exception('Bed Temp cannot be less than 0 C')
     if nozzleTemp < 140:
-        raise Exception('Nozzle Temp cant be less than 140 C')
+        raise Exception('Nozzle Temp cannot be less than 140 C')
 
-    nozzleTempWaitTime = ((nozzleTemp - 140)/8)/5.6154
+    nozzleTempWaitTime = (nozzleTemp/44.9248) - 3.12422
     bedTempWaitTime = (bedTemp/5)/5.6154
 
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
