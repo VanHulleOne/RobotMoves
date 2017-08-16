@@ -153,24 +153,9 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     print('Bead Overlap:', beadOverlap)
     angle = 0
     currHeight = centerZ
-
-    setVel = False
-    setBedTemp = False
-    setNozzleTemp = False
     
     if (firstLayerTrue == True):
-    
-        if vel != None:
-            setVel = True
-        if bedTemp != None:
-            setBedTemp = True    
-        if nozzleTemp != None:
-            setNozzleTemp = True
-    
-    if setBedTemp or setNozzleTemp or setVel == True:
-        yield from setNozzle( vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
-                             setVel = setVel, setBedTemp = setBedTemp, 
-                             setNozzleTemp = setNozzleTemp)
+        yield from setNozzle(vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp)
     
         yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
         yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n\n')
@@ -357,21 +342,7 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     thetaStep = 0
     thetaTotal = 0
 
-    setVel = False
-    setBedTemp = False
-    setNozzleTemp = False
-    
-    if vel != None:
-        setVel = True
-    if bedTemp != None:
-        setBedTemp = True
-    if nozzleTemp != None:
-        setNozzleTemp = True
-    
-    if setBedTemp or setNozzleTemp or setVel == True:
-        yield from setNozzle( vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
-                             setVel = setVel, setBedTemp = setBedTemp, 
-                             setNozzleTemp = setNozzleTemp)
+    yield from setNozzle(vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp)
 
     
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
@@ -589,41 +560,45 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
                      bedTemp = gripsBedTemp, nozzleTemp = gripsNozzleTemp)
 #finally check for grips and removal?
 
-def setNozzle(vel = 10, bedTemp = 0, nozzleTemp = 220, setVel = False, 
-              setBedTemp = False, setNozzleTemp = False):
-    if vel < 0:
-        raise Exception('Velocity cannot be negative')
+def setNozzle(vel = 10, bedTemp = 0, nozzleTemp = 220):
+    ValueSetter = namedtuple('ValueSetter', 'name waitTime outputName')
+    
+    setters = []
+    
+    if vel is not None:
+        if vel < 0:
+            raise Exception('Velocity cannot be negative')
+        setters.append(ValueSetter('Velocity', ((vel*(28.216/30))+.5)/5.6154, 'DO1_Auto_Mode'))
+        
     if bedTemp != None:
-        if bedTemp < 0:
+        if bedTemp < 0 or bedTemp > 120:
             raise Exception('Bed Temp cannot be less than 0 C')
+        setters.append(ValueSetter('Bed Temp', (bedTemp/5)/5.6154, 'DO8_Triple_Retract'))
+        
     if nozzleTemp != None:
-        if nozzleTemp < 140:
+        if nozzleTemp < 140 or nozzleTemp > 250:
             raise Exception('Nozzle Temp cannot be less than 140 C')
+        setters.append(ValueSetter('Nozzle Temp', (nozzleTemp/44.9248) - 3.12422, 'DO2_Man_Extrude'))
+
+    if not setters:
+        return
 
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n\n')    
-        
-    ValueSetter = namedtuple('ValueSetter', 'waitTime outputName shouldSet')
-    
-    setters = (ValueSetter(((vel*(28.216/30))+.5)/5.6154, 'DO1_Auto_Mode', setVel),
-               ValueSetter((bedTemp/5)/5.6154, 'DO8_Triple_Retract', setBedTemp),
-               ValueSetter((nozzleTemp/44.9248) - 3.12422, 'DO2_Man_Extrude', setNozzleTemp)
-               )
-    
+
     for setter in setters:
-        if setter.shouldSet:
-            yield('\t\tSetDO ' +setter.outputName +', 1;\n')
+        yield('\t\tSetDO ' +setter.outputName +', 1;\n')
 
     yield('\t\tWaitTime .1;\n\n')
 
-    for setter in setters:
-        if setter.shouldSet:   
-            yield('\t\tSetDO ' +setter.outputName +', 0;\n')
-            yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-            yield('\t\tWaitTime ' + str(setter.waitTime) + ';\n')
-            yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
-            
-            yield('\t\tWaitTime .1;\n\n') 
+    for setter in setters: 
+        yield('\t\t! '+setter.name + '\n')
+        yield('\t\tSetDO ' +setter.outputName +', 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+        yield('\t\tWaitTime ' + str(setter.waitTime) + ';\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
+        
+        yield('\t\tWaitTime .1;\n\n') 
         
     yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n\n') 
         
