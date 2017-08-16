@@ -153,21 +153,23 @@ def outsideCylinder(*, centerX=0, centerY=0, centerZ=15, dia=16.8, length=None,
     angle = 0
     currHeight = centerZ
 
+    setVel = False
     setBedTemp = False
     setNozzleTemp = False
     
     if (firstLayerTrue == True):
     
-        yield from setFeedRate(vel = vel)
-    
+        if vel != None:
+            setVel = True
         if bedTemp != None:
-            setBedTemp = True
+            setBedTemp = True    
         if nozzleTemp != None:
             setNozzleTemp = True
     
-        if setBedTemp or setNozzleTemp == True:
-            yield from setTemp(bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
-                           setBedTemp = setBedTemp, setNozzleTemp = setNozzleTemp)
+    if setBedTemp or setNozzleTemp or setVel == True:
+        yield from setNozzle( vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
+                             setVel = setVel, setBedTemp = setBedTemp, 
+                             setNozzleTemp = setNozzleTemp)
     
         yield('\t\tSetDO DO4_Heat_Nozzle, 1;\n')
         yield('\t\tWaitDI DI3_Nozzle_At_Temp, 1;\n\n')
@@ -352,21 +354,23 @@ def helix(diameter = 7.0, stepsPerRev = 4.0, height= 95.0, layerHeight = .2,
     zHeight = centerZ + 5 + layerHeight                                        #+5 for clearance plane
     
     thetaStep = 0
-    thetaTotal = 0    
-    
-    yield from setFeedRate(vel = vel)
+    thetaTotal = 0
 
+    setVel = False
     setBedTemp = False
     setNozzleTemp = False
     
+    if vel != None:
+        setVel = True
     if bedTemp != None:
         setBedTemp = True
     if nozzleTemp != None:
         setNozzleTemp = True
     
-    if setBedTemp or setNozzleTemp == True:
-        yield from setTemp(bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
-                           setBedTemp = setBedTemp, setNozzleTemp = setNozzleTemp)
+    if setBedTemp or setNozzleTemp or setVel == True:
+        yield from setNozzle( vel = vel, bedTemp = bedTemp, nozzleTemp = nozzleTemp, 
+                             setVel = setVel, setBedTemp = setBedTemp, 
+                             setNozzleTemp = setNozzleTemp)
 
     
     yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
@@ -584,18 +588,22 @@ def allCall(helixDiameter = 7.0, helixStepsPerRev = 4.0, helixHeight= 95.0,
                      bedTemp = gripsBedTemp, nozzleTemp = gripsNozzleTemp)
 #finally check for grips and removal?
 
-def setTemp(bedTemp = 0, nozzleTemp = 220, setBedTemp = False, setNozzleTemp = False):
-    if bedTemp < 0:
-        raise Exception('Bed Temp cannot be less than 0 C')
-    if nozzleTemp < 140:
-        raise Exception('Nozzle Temp cannot be less than 140 C')
-
-    nozzleTempWaitTime = (nozzleTemp/44.9248) - 3.12422
-    bedTempWaitTime = (bedTemp/5)/5.6154
+def setNozzle(vel = 10, bedTemp = 0, nozzleTemp = 220, setVel = False, 
+              setBedTemp = False, setNozzleTemp = False):
+    if vel < 0:
+        raise Exception('Velocity cannot be negative')
+    if bedTemp != None:
+        if bedTemp < 0:
+            raise Exception('Bed Temp cannot be less than 0 C')
+    if nozzleTemp != None:
+        if nozzleTemp < 140:
+            raise Exception('Nozzle Temp cannot be less than 140 C')
 
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n\n')    
         
+    if setVel:
+        yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
     if setBedTemp:
         yield('\t\tSetDO DO8_Triple_Retract, 1;\n')
     if setNozzleTemp:
@@ -603,39 +611,32 @@ def setTemp(bedTemp = 0, nozzleTemp = 220, setBedTemp = False, setNozzleTemp = F
 
     yield('\t\tWaitTime .1;\n\n')        
     
+    if setVel:
+        feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                       #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
+        yield('\t\tSetDO DO1_Auto_Mode, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+        yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
+        
+        yield('\t\tWaitTime .1;\n\n') 
+    
     if setBedTemp:
+        bedTempWaitTime = (bedTemp/5)/5.6154
         yield('\t\tSetDO DO8_Triple_Retract, 0;\n')
         yield('\t\tSetDO DO5_Program_Feed, 1;\n')
         yield('\t\tWaitTime ' + str(bedTempWaitTime) + ';\n')
-        yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+        yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
+        
+        yield('\t\tWaitTime .1;\n\n') 
 
     if setNozzleTemp:
+        nozzleTempWaitTime = (nozzleTemp/44.9248) - 3.12422
         yield('\t\tSetDO DO2_Man_Extrude, 0;\n')
         yield('\t\tSetDO DO5_Program_Feed, 1;\n')
         yield('\t\tWaitTime ' + str(nozzleTempWaitTime) + ';\n')
         yield('\t\tSetDO DO5_Program_Feed, 0;\n')
         
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n') 
-    
-def setFeedRate(vel = 10):
-    if vel < 0:
-        raise Exception('Temperature cannot be negative')
-        
-    feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                           #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
-    yield('\t\tWaitTime .1;\n\n')
-
-    yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
-    yield('\t\tWaitTime .1;\n\n')    
-  
-    yield('\t\tSetDO DO1_Auto_Mode, 0;\n')
-    
-    yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-    yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
-    yield('\t\tSetDO DO5_Program_Feed, 0;\n')
-    
-    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n')
-
+    yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n\n') 
         
 def writePoints(points):
     points = list(points)
