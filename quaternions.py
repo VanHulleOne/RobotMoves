@@ -6,6 +6,7 @@ Created on Mon Aug 15 13:32:57 2016
 """
 import numpy as np
 from itertools import cycle
+from collections import namedtuple
 import math
 
 rotMat = 0
@@ -602,39 +603,27 @@ def setNozzle(vel = 10, bedTemp = 0, nozzleTemp = 220, setVel = False,
     yield('\t\tSetDO DO6_Between_Layer_Retract, 1;\n')
     yield('\t\tWaitTime .1;\n\n')    
         
-    if setVel:
-        yield('\t\tSetDO DO1_Auto_Mode, 1;\n')
-    if setBedTemp:
-        yield('\t\tSetDO DO8_Triple_Retract, 1;\n')
-    if setNozzleTemp:
-        yield('\t\tSetDO DO2_Man_Extrude, 1;\n')
-
-    yield('\t\tWaitTime .1;\n\n')        
+    ValueSetter = namedtuple('ValueSetter', 'waitTime outputName shouldSet')
     
-    if setVel:
-        feedRateWaitTime = ((vel*(28.216/30))+.5)/5.6154                       #28.216/30 is from the relation of 25 mm/min feed rate for a speed of 30 mm/s, the rest was found from a linear fit
-        yield('\t\tSetDO DO1_Auto_Mode, 0;\n')
-        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-        yield('\t\tWaitTime ' + str(feedRateWaitTime) + ';\n')
-        yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
-        
-        yield('\t\tWaitTime .1;\n\n') 
+    setters = (ValueSetter(((vel*(28.216/30))+.5)/5.6154, 'DO1_Auto_Mode', setVel),
+               ValueSetter((bedTemp/5)/5.6154, 'DO8_Triple_Retract', setBedTemp),
+               ValueSetter((nozzleTemp/44.9248) - 3.12422, 'DO2_Man_Extrude', setNozzleTemp)
+               )
     
-    if setBedTemp:
-        bedTempWaitTime = (bedTemp/5)/5.6154
-        yield('\t\tSetDO DO8_Triple_Retract, 0;\n')
-        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-        yield('\t\tWaitTime ' + str(bedTempWaitTime) + ';\n')
-        yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
-        
-        yield('\t\tWaitTime .1;\n\n') 
+    for setter in setters:
+        if setter.shouldSet:
+            yield('\t\tSetDO ' +setter.outputName +', 1;\n')
 
-    if setNozzleTemp:
-        nozzleTempWaitTime = (nozzleTemp/44.9248) - 3.12422
-        yield('\t\tSetDO DO2_Man_Extrude, 0;\n')
-        yield('\t\tSetDO DO5_Program_Feed, 1;\n')
-        yield('\t\tWaitTime ' + str(nozzleTempWaitTime) + ';\n')
-        yield('\t\tSetDO DO5_Program_Feed, 0;\n')
+    yield('\t\tWaitTime .1;\n\n')
+
+    for setter in setters:
+        if setter.shouldSet:   
+            yield('\t\tSetDO ' +setter.outputName +', 0;\n')
+            yield('\t\tSetDO DO5_Program_Feed, 1;\n')
+            yield('\t\tWaitTime ' + str(setter.waitTime) + ';\n')
+            yield('\t\tSetDO DO5_Program_Feed, 0;\n\n')
+            
+            yield('\t\tWaitTime .1;\n\n') 
         
     yield('\t\tSetDO DO6_Between_Layer_Retract, 0;\n\n\n') 
         
